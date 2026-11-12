@@ -1,0 +1,38 @@
+# 저장소 루트가 Unity 프로젝트 루트다. dotnet 쪽(Core 빌드와 테스트)은 Tests/ 아래에만 있다.
+
+# ---- Unity ----
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+/Recordings/
+/.vs/
+/Assets/_Recovery/
+/Assets/_Recovery.meta
+
+# Unity 가 루트에 생성하는 솔루션과 프로젝트 파일
+/*.csproj
+/*.sln
+/*.slnx
+
+# ---- dotnet (Tests/) ----
+bin/
+obj/
+artifacts/
+*.user
+
+# ---- 빌드 산출물 ----
+*.apk
+*.aab
+
+# ---- 로컬 전용 작업 지침 문서 ----
+CLAUDE.md
+AGENTS.md
+
+# ---- OS ----
+Thumbs.db
+.DS_Store
