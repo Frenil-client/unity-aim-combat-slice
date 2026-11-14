@@ -1,0 +1,10 @@
+<Project>
+
+  <!-- Tests 아래 dotnet 프로젝트의 bin/obj 를 Tests/artifacts/ 한곳으로 모은다.
+       저장소 루트가 곧 Unity 프로젝트 루트라서 이 설정을 루트에 두면 Unity 가 생성하는 csproj 에도 적용된다. 그래서 Tests 안에만 둔다. -->
+  <PropertyGroup>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+  </PropertyGroup>
+
+</Project>

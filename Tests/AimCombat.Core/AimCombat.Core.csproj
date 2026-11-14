@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Core 를 Unity 없이 빌드하는 dotnet 프로젝트. 소스는 Unity 프로젝트의 Assets 안에 한 벌만 있고 여기서는 그 파일을 그대로 컴파일한다.
+       UnityEngine 을 참조하지 않는다. Unity 쪽에서는 AimCombat.Core.asmdef 의 noEngineReferences 가 같은 규칙을 강제한다. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>AimCombat.Core</RootNamespace>
+    <AssemblyName>AimCombat.Core</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Assets\_Project\Scripts\Core\**\*.cs" LinkBase="Core" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AimCombat.Core/AimCombat.Core.csproj" />
+  <Project Path="AimCombat.Core.Tests/AimCombat.Core.Tests.csproj" />
+</Solution>
