@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 382d1ccc0d6240747a41ef672a24dc62, type: 3}
+  m_Name: FeelSettings
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.FeelSettings
+  maxShakeOffset: 0.18
+  maxShakeRoll: 1.2
+  shakeRecovery: 2.2
+  shakeFrequency: 22
+  burstShake: 0.3
+  fullBurstHitStop: 0.12
+  slamShake: 0.6
+  allyHurtShake: 0.12
+  masterVolume: 0.8
+  autoAllyVolume: 0.35

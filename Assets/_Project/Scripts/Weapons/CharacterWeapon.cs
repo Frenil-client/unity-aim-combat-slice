@@ -96,6 +96,9 @@ namespace AimCombat.Weapons
         /// <summary>한 발이 무언가를 맞힐 때마다 알린다. 관통탄은 맞힌 대상마다 알린다. 인자는 충돌체, 지점, 충전량(0에서 1, 차지형이 아니면 0).</summary>
         public event Action<Collider, Vector3, float> Hit;
 
+        /// <summary>방아쇠 한 번에 한 번 알린다(산탄형도 한 번). 인자는 충전량(0에서 1). 총구 화염, 탄피, 사격음, 반동 흔들림이 구독한다.</summary>
+        public event Action<float> Fired;
+
         public WeaponKind Kind => kind;
         public int Ammo { get; private set; }
         public int MagazineSize => magazineSize;
@@ -122,15 +125,23 @@ namespace AimCombat.Weapons
             }
         }
 
-        // 니케의 무기별 1발당 버스트 게이지를 시작값으로 쓴다(NIKKE_COMBAT_ANALYSIS.md 5절, 게이지 최대 10000).
+        /// <summary>
+        /// 버스트 게이지 충전 배율(2026-11-14 조정). 니케는 5명이 쏘지만 이 슬라이스는 3명이고 한 판이 짧아
+        /// 니케 1발당 값 그대로는 연계가 너무 드물게 열린다. 그래서 기준값에 3을 곱한다.
+        /// </summary>
+        public const float BurstGaugeScale = 3f;
+
+        // 니케의 무기별 1발당 버스트 게이지를 기준값으로 쓰고(NIKKE_COMBAT_ANALYSIS.md 5절, 게이지 최대 10000) 배율을 곱한다.
         public static float GaugePerHitOf(WeaponKind weaponKind)
         {
+            float nikkeBase;
             switch (weaponKind)
             {
-                case WeaponKind.Auto: return 20f;
-                case WeaponKind.Charge: return 280f;
-                default: return 45f;
+                case WeaponKind.Auto: nikkeBase = 20f; break;
+                case WeaponKind.Charge: nikkeBase = 280f; break;
+                default: nikkeBase = 45f; break;
             }
+            return nikkeBase * BurstGaugeScale;
         }
 
         /// <summary>충전량에 따른 차지 배율. 반동과 궤적, 명중 반응 크기에도 쓴다.</summary>
@@ -184,6 +195,7 @@ namespace AimCombat.Weapons
                     {
                         nextFireTime = now + fireInterval;
                         FireSingle(Scatter(aim, spread), 0f, 1);
+                        Fired?.Invoke(0f);
                         spread = Mathf.Min(spread + spreadPerShot, maxSpread);
                         Consume(kickStrength);
                     }
@@ -202,6 +214,7 @@ namespace AimCombat.Weapons
                     else if (charging && !held)
                     {
                         FireSingle(aim, charge, pierceCount);
+                        Fired?.Invoke(charge);
                         Consume(kickStrength * (1f + charge));
                         CancelCharge();
                         nextFireTime = now + fireInterval;
@@ -213,6 +226,7 @@ namespace AimCombat.Weapons
                     {
                         nextFireTime = now + fireInterval;
                         for (int i = 0; i < pelletCount; i++) FireSingle(Scatter(aim, pelletSpread), 0f, 1);
+                        Fired?.Invoke(0f);
                         Consume(kickStrength);
                     }
                     break;

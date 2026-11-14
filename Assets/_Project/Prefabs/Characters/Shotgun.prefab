@@ -188,9 +188,9 @@ MonoBehaviour:
   kickStrength: 2.5
   postShotHold: 0.3
   range: 80
-  spreadPerShot: 0.35
-  maxSpread: 4
-  spreadRecovery: 10
+  spreadPerShot: 0.05
+  maxSpread: 0.5
+  spreadRecovery: 1
   chargeDuration: 1
   chargeBonus: 1.5
   pierceCount: 3

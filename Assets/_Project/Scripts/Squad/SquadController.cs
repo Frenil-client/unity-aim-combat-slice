@@ -13,6 +13,36 @@ using UnityEngine.UI;
 
 namespace AimCombat.Squad
 {
+    /// <summary>사격 한 발의 명중 결과. 피해 계산이 끝난 뒤의 값이다.</summary>
+    public readonly struct ShotHit
+    {
+        /// <summary>쏜 아군의 배치 순서.</summary>
+        public readonly int Member;
+        public readonly WeaponKind Weapon;
+        /// <summary>맞은 대상(적이면 EnemyUnit, 사격장이면 RangeTarget).</summary>
+        public readonly IHittable Target;
+        public readonly Vector3 Point;
+        public readonly float Damage;
+        public readonly bool Critical;
+        public readonly bool WeakPoint;
+        /// <summary>이 한 발로 대상이 쓰러졌다.</summary>
+        public readonly bool Killed;
+        public readonly float Charge01;
+
+        public ShotHit(int member, WeaponKind weapon, IHittable target, Vector3 point, float damage, bool critical, bool weakPoint, bool killed, float charge01)
+        {
+            Member = member;
+            Weapon = weapon;
+            Target = target;
+            Point = point;
+            Damage = damage;
+            Critical = critical;
+            WeakPoint = weakPoint;
+            Killed = killed;
+            Charge01 = charge01;
+        }
+    }
+
     /// <summary>
     /// 아군 분대 조작. 사격장과 전투 씬이 같이 쓴다.
     /// - 고른 한 명은 입력 계층(CombatInput)의 조준점과 방아쇠를 따른다. 무기는 자기 방식대로 쏜다(연사, 차지, 산탄).
@@ -151,6 +181,15 @@ namespace AimCombat.Squad
         /// <summary>스킬이나 버스트를 썼다. 인자는 배치 순서와 스킬. HUD 알림이 구독한다.</summary>
         public event Action<int, SkillData> SkillUsed;
 
+        /// <summary>아군이 방아쇠 한 번을 쐈다. 인자는 배치 순서와 충전량. 타격감(총구 화염, 사격음, 흔들림)이 구독한다.</summary>
+        public event Action<int, float> ShotFired;
+
+        /// <summary>사격 한 발이 대상에 맞았다(피해 계산 뒤). 타격감(히트스톱, 플래시, 명중 이펙트)이 구독한다.</summary>
+        public event Action<ShotHit> HitLanded;
+
+        public Camera ViewCamera => viewCamera;
+        public CharacterAimRig RigOf(int index) => members[index].rig;
+
         /// <summary>팀 공용 버스트 게이지와 연계 상태(SPEC 3.2).</summary>
         public BurstChain Burst => burst;
 
@@ -234,6 +273,13 @@ namespace AimCombat.Squad
                 member.burstCooldown = member.burstSkill != null ? new SkillCooldown(member.burstSkill.ToCore().Cooldown, startReady: true) : null;
             }
 
+            for (int i = 0; i < members.Length; i++)
+            {
+                int index = i;
+                CharacterWeapon weapon = members[i].weapon;
+                weapon.Fired += charge01 => ShotFired?.Invoke(index, charge01);
+            }
+
             foreach (Member member in members)
             {
                 CharacterWeapon weapon = member.weapon;
@@ -276,9 +322,6 @@ namespace AimCombat.Squad
             UpdateSkills(deltaTime);
             if (input.BurstRequest >= 0) TryBurstCandidate(input.BurstRequest);
             UpdateAutoBurst();
-
-            // 자동 전투에서는 누르지 않는 동안 커서가 조준점을 끌고 가지 않는다. 조준점은 아래 UpdateAutoSelected 가 옮긴다.
-            input.HoverAims = !autoControlSelected;
 
             Member selected = members[selectedIndex];
             bool selectedAuto = autoControlSelected && !input.FireHeld;
@@ -706,6 +749,10 @@ namespace AimCombat.Squad
                 damageNumbers.Add(target, point, FromFixed(damage), hit.Critical, hit.WeakPoint, controlled);
             }
             burst.AddGauge(ToFixed(weapon.GaugePerHit));
+
+            HitLanded?.Invoke(new ShotHit(
+                Array.IndexOf(members, member), weapon.Kind, target, point, FromFixed(damage),
+                hit.Critical, hit.WeakPoint, victim != null && !victim.IsAlive, charge01));
         }
 
         // 맞은 지점의 깊이를 아군 줄(0)에서 적이 나타나는 가장 먼 선(1)까지의 비율로 바꿔 무기의 적정 사거리와 비교한다.

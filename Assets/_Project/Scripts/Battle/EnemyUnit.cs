@@ -27,6 +27,10 @@ namespace AimCombat.Battle
     public sealed class EnemyUnit : MonoBehaviour, IHittable, IPierceable
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int FlashAmountId = Shader.PropertyToID("_FlashAmount");
+        private static readonly int FlashColorId = Shader.PropertyToID("_FlashColor");
+        private static readonly int FlashBlendId = Shader.PropertyToID("_FlashBlend");
+        private static readonly int RimStrengthId = Shader.PropertyToID("_RimStrength");
         private static readonly List<EnemyUnit> alive = new List<EnemyUnit>();
 
         /// <summary>살아 있는 적 목록. 자동 사격 아군과 스킬이 대상을 고를 때 쓴다.</summary>
@@ -49,6 +53,7 @@ namespace AimCombat.Battle
         [Header("표시")]
         [SerializeField] private Renderer[] renderers;
         [SerializeField] private Transform healthFill;
+        [Tooltip("기본 번쩍임이 사라지는 시간. 타격감 프리셋이 있으면 무기별 값으로 바뀐다.")]
         [SerializeField] private float flashDuration = 0.1f;
         [SerializeField] private Color stunColor = new Color(1f, 0.95f, 0.35f);
         [SerializeField] private Color slowColor = new Color(0.35f, 0.65f, 1f);
@@ -57,6 +62,9 @@ namespace AimCombat.Battle
         private AllyUnit target;
         private float nextAttackTime;
         private float flash;
+        private float flashFade;
+        private float flashRim;
+        private Color flashColor = Color.white;
         private Color[] baseColors;
         private MaterialPropertyBlock block;
         private Func<AllyUnit> pickTarget;
@@ -111,7 +119,19 @@ namespace AimCombat.Battle
         }
 
         /// <summary>몸을 번쩍인다. 1이 가장 밝다.</summary>
-        public void Flash(float strength) => flash = Mathf.Max(flash, strength);
+        public void Flash(float strength) => Flash(strength, flashDuration, 0f, Color.white);
+
+        /// <summary>
+        /// 번쩍인다(SPEC 4절 피격 플래시). strength 는 처음 밝기(0~1), duration 은 사라지는 시간, rim 은 윤곽 빛 세기.
+        /// 타격감 연출이 무기별 프리셋으로 부른다. 부르지 않으면 1단계와 같은 흰 번쩍임(윤곽 빛 없음)이다.
+        /// </summary>
+        public void Flash(float strength, float duration, float rim, Color color)
+        {
+            flash = Mathf.Clamp01(strength);
+            flashFade = duration;
+            flashRim = rim;
+            flashColor = color;
+        }
 
         private void Awake()
         {
@@ -133,7 +153,7 @@ namespace AimCombat.Battle
 
         private void OnDamaged(DamageEvent e)
         {
-            flash = 1f;
+            Flash(1f);
             RefreshHealthBar();
             if (e.Kind != DamageSource.Shot) NonShotDamaged?.Invoke(this, e);
         }
@@ -182,7 +202,7 @@ namespace AimCombat.Battle
             if (kind == EnemyKind.Rusher)
             {
                 target.TakeDamage(data.AttackDamage);
-                flash = 0.6f; // 때리는 순간도 살짝 번쩍여 공격을 알린다
+                Flash(0.6f); // 때리는 순간도 살짝 번쩍여 공격을 알린다
             }
             else
             {
@@ -194,7 +214,7 @@ namespace AimCombat.Battle
         private void LateUpdate()
         {
             if (IsDead) return;
-            if (flash > 0f) flash = flashDuration > 0f ? Mathf.Max(0f, flash - Time.deltaTime / flashDuration) : 0f;
+            if (flash > 0f) flash = flashFade > 0f ? Mathf.Max(0f, flash - Time.deltaTime / flashFade) : 0f;
 
             Color tint = Color.clear;
             float tintAmount = 0f;
@@ -220,8 +240,11 @@ namespace AimCombat.Battle
             {
                 Color color = Color.Lerp(baseColors[i], tint, tintAmount);
                 color = Color.Lerp(color, warning, warning.a);
-                color = Color.Lerp(color, Color.white, flash);
                 block.SetColor(BaseColorId, color);
+                block.SetFloat(FlashAmountId, flash);
+                block.SetColor(FlashColorId, flashColor);
+                block.SetFloat(FlashBlendId, 1f);
+                block.SetFloat(RimStrengthId, flashRim);
                 renderers[i].SetPropertyBlock(block);
             }
         }

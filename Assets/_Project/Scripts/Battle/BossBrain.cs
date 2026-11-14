@@ -71,6 +71,9 @@ namespace AimCombat.Battle
         /// <summary>강타가 약점 사격으로 취소됐다.</summary>
         public event Action<BossBrain> SlamCancelled;
 
+        /// <summary>어느 보스든 강타가 떨어졌다. 화면 흔들림이 구독한다.</summary>
+        public static event Action<BossBrain> SlamLanded;
+
         /// <summary>패턴이 바뀌었다.</summary>
         public event Action<BossBrain, BossPhase> PhaseChanged;
 
@@ -140,6 +143,7 @@ namespace AimCombat.Battle
                     if (MoveTo(lungeGoal, data.LungeSpeed))
                     {
                         if (SlamTarget != null && !SlamTarget.IsDown) SlamTarget.TakeDamage(data.SlamDamage);
+                        SlamLanded?.Invoke(this);
                         unit.Flash(1f);
                         Enter(BossPhase.Return, 0f);
                     }

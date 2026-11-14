@@ -7,7 +7,7 @@ namespace AimCombat.Input
     /// <summary>
     /// 전투 입력 계층. 마우스와 터치를 같은 결과(조준점 화면 좌표, 방아쇠, 대상 전환)로 바꾼다.
     /// 이 값을 쓰는 화면 코드는 기기 종류를 모른다.
-    /// - 마우스: 조준점은 커서 위치, 왼쪽 버튼이 방아쇠. 자동 전투에서는 누르는 동안만 커서를 따른다(HoverAims).
+    /// - 마우스: 왼쪽 버튼을 누르는 동안만 조준점이 커서 위치를 따르고, 누르는 동안이 방아쇠다. 떼면 조준점은 그 자리에 남는다.
     /// - 터치: 손가락을 끌면 조준점이 그만큼 움직이고(상대 이동), 손가락이 닿아 있는 동안이 방아쇠.
     /// - 키보드: Z, X, C, V, B 로 배치 순서대로 대상 전환. 숫자 1-5 는 지금 버스트 단계에서 쓸 수 있는 아군 목록(배치 순서)의
     ///   n번째 버스트, Q 는 그 목록의 첫 번째 버스트.
@@ -30,10 +30,13 @@ namespace AimCombat.Input
         public Vector2 AimScreenPosition => aim;
 
         /// <summary>
-        /// 누르지 않을 때도 마우스 커서가 조준점을 움직이는지. 수동 조작(PC)에서는 켜고, 자동 전투에서는 끈다.
-        /// 자동 전투에서는 누르지 않는 동안 분대가 조준점을 직접 옮기기 때문이다(SetAim).
+        /// 누르지 않을 때도 마우스 커서가 조준점을 움직이는지. 기본은 꺼짐이다(2026-11-14: 조준점은 클릭 중에만 커서를 따른다).
+        /// 켜면 1단계처럼 커서를 늘 따른다. 자동 전투는 누르지 않는 동안 분대가 조준점을 직접 옮긴다(SetAim).
         /// </summary>
-        public bool HoverAims { get; set; } = true;
+        public bool HoverAims { get; set; } = false;
+
+        /// <summary>uGUI 가 아닌 화면 요소(즉시 모드 GUI 의 튜닝 패널)가 이 화면 좌표를 덮고 있는지. 덮고 있으면 그 누름은 사격으로 치지 않는다.</summary>
+        public static System.Predicate<Vector2> ExtraUiHitTest;
 
         /// <summary>조준점을 옮긴다. 자동 전투가 손을 뗀 동안 조준점을 목표로 옮길 때 쓴다. 터치의 상대 이동은 여기서부터 이어진다.</summary>
         public void SetAim(Vector2 screenPosition)
@@ -73,6 +76,7 @@ namespace AimCombat.Input
             bool touching = false;
             Vector2 touchDelta = Vector2.zero;
             Vector2 mousePosition = Vector2.zero;
+            Vector2 touchPosition = Vector2.zero;
             Touchscreen touch = Touchscreen.current;
             Mouse mouse = Mouse.current;
 
@@ -82,6 +86,7 @@ namespace AimCombat.Input
                 touching = true;
                 pressed = true;
                 touchDelta = touch.primaryTouch.delta.ReadValue();
+                touchPosition = touch.primaryTouch.position.ReadValue();
             }
             else if (mouse != null)
             {
@@ -95,7 +100,8 @@ namespace AimCombat.Input
             if (pressed && !wasPressed)
             {
                 // Input System UI 모듈에서는 인자 없는 호출이 마지막으로 움직인 포인터(마우스나 터치)를 본다.
-                pressStartedOverUi = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+                pressStartedOverUi = (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                    || (ExtraUiHitTest != null && ExtraUiHitTest(touching ? touchPosition : mousePosition));
             }
 
             FirePressedThisFrame = pressed && !wasPressed && !pressStartedOverUi;

@@ -56,6 +56,9 @@ namespace AimCombat.Battle
         /// <summary>전투 불능이 되는 순간 알린다.</summary>
         public event Action<AllyUnit> Downed;
 
+        /// <summary>엄폐물을 뚫고 아군 본인이 피해를 받았다. 인자는 피해량. 화면 흔들림이 구독한다.</summary>
+        public event Action<AllyUnit, float> Wounded;
+
         public void SetCover(CoverObject value) => cover = value;
 
         private void Awake()
@@ -120,6 +123,7 @@ namespace AimCombat.Battle
         private void Hurt(float damage)
         {
             hurtFlash = 1f;
+            Wounded?.Invoke(this, damage);
             Combatant.ApplyDamage(FixedConvert.ToFixed(damage), DamageSource.Enemy, null);
         }
 
