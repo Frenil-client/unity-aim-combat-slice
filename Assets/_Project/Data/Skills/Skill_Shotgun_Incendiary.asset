@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Shotgun_Incendiary
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "\uC18C\uC774\uD0C4"
+  description: "\uAC00\uAE4C\uC6B4 \uC801 3\uAE30\uC5D0 \uD654\uC0C1\uACFC \uB454\uD654\uB97C
+    \uAC78\uACE0 \uC2A4\uD0AC \uD53C\uD574\uB97C \uC900\uB2E4."
+  trigger: 0
+  cooldown: 14
+  effects:
+  - kind: 0
+    target: 4
+    count: 3
+    coefficient: 0
+    status: {fileID: 11400000, guid: 955ca46b2ea855d41aadf41dd8561e5d, type: 2}
+  - kind: 0
+    target: 4
+    count: 3
+    coefficient: 0
+    status: {fileID: 11400000, guid: 6d8cb1d11ec5ce64f894a5063805b8c2, type: 2}
+  - kind: 1
+    target: 4
+    count: 3
+    coefficient: 1.2
+    status: {fileID: 0}

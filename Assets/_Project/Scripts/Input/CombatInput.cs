@@ -7,9 +7,11 @@ namespace AimCombat.Input
     /// <summary>
     /// 전투 입력 계층. 마우스와 터치를 같은 결과(조준점 화면 좌표, 방아쇠, 대상 전환)로 바꾼다.
     /// 이 값을 쓰는 화면 코드는 기기 종류를 모른다.
-    /// - 마우스: 조준점은 커서 위치, 왼쪽 버튼이 방아쇠.
+    /// - 마우스: 조준점은 커서 위치, 왼쪽 버튼이 방아쇠. 자동 전투에서는 누르는 동안만 커서를 따른다(HoverAims).
     /// - 터치: 손가락을 끌면 조준점이 그만큼 움직이고(상대 이동), 손가락이 닿아 있는 동안이 방아쇠.
-    /// - 키보드: 숫자 1, 2, 3 으로 대상 전환, Q 로 궁극기.
+    /// - 키보드: Z, X, C, V, B 로 배치 순서대로 대상 전환. 숫자 1-5 는 지금 버스트 단계에서 쓸 수 있는 아군 목록(배치 순서)의
+    ///   n번째 버스트, Q 는 그 목록의 첫 번째 버스트.
+    ///   Tab 으로 자동 버스트, 왼쪽 Shift 로 고른 아군의 자동 전투를 켜고 끈다. 터치는 HUD 버튼을 쓴다.
     /// UI(초상 버튼 등) 위에서 시작한 누름은 방아쇠로 치지 않는다.
     /// </summary>
     public sealed class CombatInput : MonoBehaviour
@@ -27,6 +29,19 @@ namespace AimCombat.Input
         /// <summary>조준점의 화면 좌표(픽셀).</summary>
         public Vector2 AimScreenPosition => aim;
 
+        /// <summary>
+        /// 누르지 않을 때도 마우스 커서가 조준점을 움직이는지. 수동 조작(PC)에서는 켜고, 자동 전투에서는 끈다.
+        /// 자동 전투에서는 누르지 않는 동안 분대가 조준점을 직접 옮기기 때문이다(SetAim).
+        /// </summary>
+        public bool HoverAims { get; set; } = true;
+
+        /// <summary>조준점을 옮긴다. 자동 전투가 손을 뗀 동안 조준점을 목표로 옮길 때 쓴다. 터치의 상대 이동은 여기서부터 이어진다.</summary>
+        public void SetAim(Vector2 screenPosition)
+        {
+            aim = screenPosition;
+            aimInitialized = true;
+        }
+
         /// <summary>방아쇠를 누르고 있는지.</summary>
         public bool FireHeld { get; private set; }
 
@@ -36,8 +51,15 @@ namespace AimCombat.Input
         /// <summary>이번 프레임에 요청된 대상 번호(0부터). 없으면 -1.</summary>
         public int SelectRequest { get; private set; } = -1;
 
-        /// <summary>이번 프레임에 궁극기 키(Q)를 눌렀는지. 터치는 HUD 의 궁극기 버튼을 쓴다.</summary>
-        public bool UltimatePressedThisFrame { get; private set; }
+        /// <summary>이번 프레임에 요청된 버스트 후보 번호(0부터, 지금 단계에서 쓸 수 있는 아군 목록의 순서). 없으면 -1.</summary>
+        public int BurstRequest { get; private set; } = -1;
+
+        /// <summary>이번 프레임에 자동 버스트 전환(Tab)을 눌렀는지.</summary>
+        public bool AutoBurstTogglePressed { get; private set; }
+
+        /// <summary>이번 프레임에 고른 아군의 자동 전투 전환(왼쪽 Shift)을 눌렀는지.</summary>
+        public bool AutoBattleTogglePressed { get; private set; }
+
 
         private void Update()
         {
@@ -48,28 +70,27 @@ namespace AimCombat.Input
             }
 
             bool pressed = false;
+            bool touching = false;
+            Vector2 touchDelta = Vector2.zero;
+            Vector2 mousePosition = Vector2.zero;
             Touchscreen touch = Touchscreen.current;
             Mouse mouse = Mouse.current;
 
             if (touch != null && touch.primaryTouch.press.isPressed)
             {
                 usingTouch = true;
+                touching = true;
                 pressed = true;
-                Vector2 delta = touch.primaryTouch.delta.ReadValue();
-                aim += delta * touchSensitivity;
+                touchDelta = touch.primaryTouch.delta.ReadValue();
             }
             else if (mouse != null)
             {
-                Vector2 position = mouse.position.ReadValue();
+                mousePosition = mouse.position.ReadValue();
                 // 터치를 쓰다가 마우스를 실제로 움직였을 때만 마우스로 넘어간다.
-                if (!usingTouch || (position - lastMousePosition).sqrMagnitude > 1f) usingTouch = false;
-                lastMousePosition = position;
-                if (!usingTouch) aim = position;
+                if (!usingTouch || (mousePosition - lastMousePosition).sqrMagnitude > 1f) usingTouch = false;
+                lastMousePosition = mousePosition;
                 pressed = mouse.leftButton.isPressed;
             }
-
-            aim.x = Mathf.Clamp(aim.x, 0f, Screen.width);
-            aim.y = Mathf.Clamp(aim.y, 0f, Screen.height);
 
             if (pressed && !wasPressed)
             {
@@ -81,15 +102,37 @@ namespace AimCombat.Input
             FireHeld = pressed && !pressStartedOverUi;
             wasPressed = pressed;
 
-            SelectRequest = -1;
-            Keyboard keyboard = Keyboard.current;
-            UltimatePressedThisFrame = keyboard != null && keyboard.qKey.wasPressedThisFrame;
-            if (keyboard != null)
+            // 조준점: 누르는 동안은 손가락(상대 이동)이나 커서를 따른다. 누르지 않을 때 커서를 따라갈지는 HoverAims 가 정한다.
+            // UI 버튼을 누르는 동안은 조준점을 움직이지 않는다.
+            if (touching)
             {
-                if (keyboard.digit1Key.wasPressedThisFrame) SelectRequest = 0;
-                else if (keyboard.digit2Key.wasPressedThisFrame) SelectRequest = 1;
-                else if (keyboard.digit3Key.wasPressedThisFrame) SelectRequest = 2;
+                if (FireHeld) aim += touchDelta * touchSensitivity;
+            }
+            else if (!usingTouch && (FireHeld || (HoverAims && !pressed)))
+            {
+                aim = mousePosition;
+            }
+
+            aim.x = Mathf.Clamp(aim.x, 0f, Screen.width);
+            aim.y = Mathf.Clamp(aim.y, 0f, Screen.height);
+
+            SelectRequest = -1;
+            BurstRequest = -1;
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.qKey.wasPressedThisFrame) BurstRequest = 0;
+            AutoBurstTogglePressed = keyboard != null && keyboard.tabKey.wasPressedThisFrame;
+            AutoBattleTogglePressed = keyboard != null && keyboard.leftShiftKey.wasPressedThisFrame;
+            if (keyboard == null) return;
+
+            // 배치 순서 5칸까지 키를 둔다. 분대가 3명이면 4, 5번째 키는 무시된다.
+            for (int i = 0; i < SelectKeys.Length; i++)
+            {
+                if (SelectRequest < 0 && keyboard[SelectKeys[i]].wasPressedThisFrame) SelectRequest = i;
+                if (BurstRequest < 0 && keyboard[BurstKeys[i]].wasPressedThisFrame) BurstRequest = i;
             }
         }
+
+        private static readonly Key[] SelectKeys = { Key.Z, Key.X, Key.C, Key.V, Key.B };
+        private static readonly Key[] BurstKeys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5 };
     }
 }

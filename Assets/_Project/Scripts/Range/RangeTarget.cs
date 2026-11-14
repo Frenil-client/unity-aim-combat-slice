@@ -1,4 +1,5 @@
 using AimCombat.Battle;
+using AimCombat.Core.Combat;
 using AimCombat.Weapons;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ namespace AimCombat.Range
 {
     /// <summary>
     /// 사격장 표적. 맞으면 번쩍이고 살짝 커졌다 돌아온다. 좌우나 상하로 왕복시킬 수 있다.
-    /// 조준과 명중을 눈으로 확인하는 용도이고 체력이나 피해 계산은 없다. 관통탄은 표적을 꿰뚫고 지나간다.
+    /// 조준과 명중을 눈으로 확인하는 용도이고 체력이 없다(Combatant 가 null 이라 피해 숫자만 뜬다). 관통탄은 표적을 꿰뚫고 지나간다.
     /// </summary>
     public sealed class RangeTarget : MonoBehaviour, IPierceable, IHittable
     {
@@ -45,9 +46,9 @@ namespace AimCombat.Range
             }
         }
 
-        public float Defense => 0f;
+        public Combatant Combatant => null;
 
-        public void TakeHit(float damage, float multiplier, Vector3 point) => Hit(multiplier);
+        public void OnShot(float multiplier, Vector3 point) => Hit(multiplier);
 
         /// <summary>맞았다. multiplier 는 피해 배수로, 클수록 크게 튄다(최대 3배).</summary>
         public void Hit(float multiplier = 1f)

@@ -64,10 +64,10 @@ namespace AimCombat.Weapons
 
         [Header("연사형: 탄 퍼짐")]
         [Tooltip("한 발 쏠 때마다 늘어나는 퍼짐 각도(도).")]
-        [SerializeField] private float spreadPerShot = 0.35f;
-        [SerializeField] private float maxSpread = 4f;
+        [SerializeField] private float spreadPerShot = 0.05f;
+        [SerializeField] private float maxSpread = 0.5f;
         [Tooltip("쏘지 않을 때 1초에 줄어드는 퍼짐 각도.")]
-        [SerializeField] private float spreadRecovery = 10f;
+        [SerializeField] private float spreadRecovery = 1f;
 
         [Header("차지형: 충전과 관통")]
         [Tooltip("가득 충전하는 데 걸리는 시간(초).")]

@@ -16,7 +16,8 @@ namespace AimCombat.Battle
 
     /// <summary>
     /// 한 판 진행. 웨이브를 차례로 내보내고 승패를 정한다.
-    /// - 승리: 모든 웨이브의 적을 처치(보스는 2단계에서 마지막 웨이브로 붙는다).
+    /// - 일반 웨이브를 다 넘기면 마지막 웨이브로 보스 1체가 나온다(SPEC 1절).
+    /// - 승리: 제한 시간 안에 보스 처치. 보스 원본이 없으면 모든 웨이브의 적을 처치.
     /// - 패배: 아군 전원 전투 불능 또는 제한 시간 초과.
     /// 끝나면 방아쇠를 누르거나 R 키로 다시 시작한다.
     /// </summary>
@@ -36,6 +37,9 @@ namespace AimCombat.Battle
         [SerializeField] private EnemyUnit rusherTemplate;
         [SerializeField] private EnemyUnit rangedTemplate;
         [SerializeField] private Wave[] waves;
+        [Tooltip("마지막 웨이브의 보스. 비어 있으면 일반 웨이브만으로 끝난다.")]
+        [SerializeField] private EnemyUnit bossTemplate;
+        [SerializeField] private Vector3 bossSpawn = new Vector3(0f, 0f, 30f);
         [SerializeField] private float timeLimit = 150f;
         [Tooltip("웨이브 사이 쉬는 시간(초).")]
         [SerializeField] private float waveBreak = 2.5f;
@@ -52,10 +56,17 @@ namespace AimCombat.Battle
         private float nextSpawnTime;
         private float waveStartTime;
         private float startTime;
+        private bool bossSpawned;
 
         public BattleState State { get; private set; } = BattleState.Playing;
         public int WaveNumber => Mathf.Max(1, waveIndex + 1);
-        public int WaveCount => waves.Length;
+        public int WaveCount => waves.Length + (bossTemplate != null ? 1 : 0);
+
+        /// <summary>보스 웨이브에 들어왔으면 true.</summary>
+        public bool BossWave => waveIndex >= waves.Length;
+
+        /// <summary>나와 있는 보스. 나오기 전이거나 쓰러졌으면 null 이거나 IsDead.</summary>
+        public EnemyUnit Boss { get; private set; }
         public float TimeLeft => Mathf.Max(0f, timeLimit - (Time.time - startTime));
         public int EnemiesLeft => pending.Count + EnemyUnit.Alive.Count;
 
@@ -86,6 +97,13 @@ namespace AimCombat.Battle
 
             if (Time.time < waveStartTime) return;
 
+            if (BossWave)
+            {
+                if (!bossSpawned) SpawnBoss();
+                else if (Boss == null || Boss.IsDead) End(BattleState.Victory); // 쓰러지면 오브젝트가 지워진다
+                return;
+            }
+
             if (pending.Count > 0)
             {
                 if (Time.time >= nextSpawnTime)
@@ -99,7 +117,24 @@ namespace AimCombat.Battle
             if (EnemyUnit.Alive.Count > 0) return;
 
             if (waveIndex + 1 < waves.Length) StartNextWave(waveBreak);
+            else if (bossTemplate != null) StartBossWave(waveBreak);
             else End(BattleState.Victory);
+        }
+
+        private void StartBossWave(float delay)
+        {
+            waveIndex = waves.Length;
+            waveStartTime = Time.time + delay;
+        }
+
+        private void SpawnBoss()
+        {
+            EnemyUnit boss = Instantiate(bossTemplate, bossTemplate.transform.parent);
+            boss.name = "Boss";
+            boss.Spawn(new Vector3(bossSpawn.x, bossTemplate.transform.position.y, bossSpawn.z), PickAllyTarget);
+            spawned.Add(boss);
+            Boss = boss;
+            bossSpawned = true;
         }
 
         private void StartNextWave(float delay)

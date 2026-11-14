@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78c67443ef0a9b74ba132f112926e564, type: 3}
+  m_Name: Enemy_Ranged
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.EnemyData
+  displayName: "\uC6D0\uAC70\uB9AC\uD615"
+  maxHealth: 400
+  defense: 5
+  attackDamage: 20
+  attackInterval: 2.6
+  moveSpeed: 0
+  useControlGauge: 0
+  controlGauge: 60
+  breakDuration: 4
+  patternInterval: 3
+  barrageShots: 10
+  barrageShotInterval: 0.15
+  slamTelegraph: 3
+  slamDamage: 240
+  slamCancelDamage: 500
+  staggerDuration: 2
+  lungeSpeed: 18

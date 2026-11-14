@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Rapid_Focus
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "\uC18D\uC0AC \uC9D1\uC911"
+  description: "\uACF5\uACA9 \uAC15\uD654\uB97C \uD55C \uC911\uCCA9 \uC313\uACE0
+    \uD0C4\uCC3D\uC744 \uC989\uC2DC \uCC44\uC6B4\uB2E4."
+  trigger: 0
+  cooldown: 12
+  effects:
+  - kind: 0
+    target: 0
+    count: 1
+    coefficient: 0
+    status: {fileID: 11400000, guid: 6ba9ed1f0e7b75c41a79dcae1697ae26, type: 2}
+  - kind: 3
+    target: 0
+    count: 1
+    coefficient: 0
+    status: {fileID: 0}

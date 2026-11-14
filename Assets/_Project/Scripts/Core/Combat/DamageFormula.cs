@@ -38,6 +38,36 @@ namespace AimCombat.Core.Combat
                 IsWeaponShot = true,
             };
         }
+
+        /// <summary>스킬 피해. 무기 계수는 1이고 스킬 계수를 쓴다. 약점, 적정 사거리, 차지는 붙지 않는다(SPEC 3.1).</summary>
+        public static DamageInput Skill(Fixed attack, Fixed skillCoefficient)
+        {
+            return new DamageInput
+            {
+                Attack = attack,
+                WeaponCoefficient = Fixed.One,
+                SkillCoefficient = skillCoefficient,
+            };
+        }
+
+        /// <summary>
+        /// 공격자의 버프와 대상의 방어력, 디버프를 채운다. 공격력 증가, 치명 항목, 약점 항목은 공격자에게서,
+        /// 방어력과 받는 피해 증가는 대상에게서 읽는다. 대상이 없으면(사격장 표적) 공격자 쪽만 채운다.
+        /// </summary>
+        public void ApplyStatuses(Combatant attacker, Combatant target)
+        {
+            if (attacker != null)
+            {
+                AttackUpSum = attacker.Statuses.Sum(StatKind.AttackUp);
+                CritBonusUp = attacker.Statuses.Sum(StatKind.CritBonusUp);
+                WeakPointBonusUp = attacker.Statuses.Sum(StatKind.WeakPointBonusUp);
+            }
+            if (target != null)
+            {
+                Defense = target.Defense;
+                DamageTakenUpSum = target.Statuses.Sum(StatKind.DamageTakenUp);
+            }
+        }
     }
 
     /// <summary>
@@ -75,6 +105,25 @@ namespace AimCombat.Core.Combat
 
             // 6. 하한
             return damage < Fixed.One ? Fixed.One : damage;
+        }
+
+        /// <summary>
+        /// 지속 피해 한 틱(SPEC 3.3). 1, 2, 5, 6단계만 거친다. 공격력 증가는 틱이 들어가는 순간 시전자의 값이다.
+        /// </summary>
+        public static Fixed ComputeDot(Fixed attack, Fixed attackUpSum, Fixed defense, Fixed coefficient, Fixed damageTakenUpSum)
+        {
+            DamageInput input = DamageInput.Skill(attack, coefficient);
+            input.AttackUpSum = attackUpSum;
+            input.Defense = defense;
+            input.DamageTakenUpSum = damageTakenUpSum;
+            // 치명, 강화 상태를 넣지 않으므로 주요 배율은 1이고, 사격이 아니므로 차지도 붙지 않는다.
+            return Compute(input);
+        }
+
+        /// <summary>치명 확률. 기본 15%에 공격자의 치명 확률 증가를 더한다.</summary>
+        public static Fixed CritChance(Combatant attacker)
+        {
+            return attacker == null ? BaseCritChance : BaseCritChance + attacker.Statuses.Sum(StatKind.CritChanceUp);
         }
 
         /// <summary>3단계 주요 배율. 1 + 해당하는 항목의 합.</summary>

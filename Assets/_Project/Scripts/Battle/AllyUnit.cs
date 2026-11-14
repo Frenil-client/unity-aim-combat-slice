@@ -1,12 +1,17 @@
 using System;
 using AimCombat.Character;
+using AimCombat.Core;
+using AimCombat.Core.Combat;
+using AimCombat.Data;
+using AimCombat.Weapons;
 using UnityEngine;
 
 namespace AimCombat.Battle
 {
     /// <summary>
-    /// 아군 한 명의 체력과 엄폐 판정. 엄폐나 재장전 자세일 때는 엄폐물이 공격을 대신 받고,
-    /// 사격 자세이거나 엄폐물이 부서졌으면 본인이 맞는다. 체력이 다하면 전투 불능이 된다.
+    /// 아군 한 명의 체력, 상태효과와 엄폐 판정. 체력과 버프는 Core 의 Combatant 가 들고 여기서는 엄폐 규칙과 표시를 맡는다.
+    /// 엄폐나 재장전 자세일 때는 엄폐물이 공격을 대신 받고, 사격 자세이거나 엄폐물이 부서졌으면 본인이 맞는다.
+    /// 체력이 다하면 전투 불능이 된다.
     /// </summary>
     [RequireComponent(typeof(CharacterPoseView))]
     public sealed class AllyUnit : MonoBehaviour
@@ -16,14 +21,27 @@ namespace AimCombat.Battle
         [SerializeField] private Color downTint = new Color(0.35f, 0.35f, 0.4f, 1f);
         [Tooltip("맞았을 때 붉게 번쩍이는 시간.")]
         [SerializeField] private float hurtFlashDuration = 0.15f;
+        [SerializeField] private Color healTint = new Color(0.55f, 1f, 0.6f, 1f);
 
         private CharacterPoseView poseView;
         private SpriteRenderer[] renderers;
+        private Combatant combatant;
         private float hurtFlash;
+        private float healFlash;
 
-        public float Health { get; private set; }
+        /// <summary>체력과 버프. 다른 컴포넌트의 Awake 에서 먼저 불릴 수 있어 처음 부를 때 만든다.</summary>
+        public Combatant Combatant
+        {
+            get
+            {
+                if (combatant == null) CreateCombatant();
+                return combatant;
+            }
+        }
+
+        public float Health => FixedConvert.ToFloat(Combatant.Health);
         public float MaxHealth => maxHealth;
-        public bool IsDown => Health <= 0f;
+        public bool IsDown => !Combatant.IsAlive;
         public CoverObject Cover => cover;
 
         /// <summary>적이 노리는 사격 위치(가슴 높이).</summary>
@@ -44,7 +62,21 @@ namespace AimCombat.Battle
         {
             poseView = GetComponent<CharacterPoseView>();
             renderers = GetComponentsInChildren<SpriteRenderer>(true);
-            Health = maxHealth;
+            if (combatant == null) CreateCombatant();
+        }
+
+        // 공격력은 무기에서 읽는다. 아군은 방어력이 없다(적 공격은 공격 수치를 그대로 준다).
+        private void CreateCombatant()
+        {
+            var weapon = GetComponent<CharacterWeapon>();
+            Fixed attack = FixedConvert.ToFixed(weapon != null ? weapon.Attack : 0f);
+            combatant = new Combatant(name, FixedConvert.ToFixed(maxHealth), attack, Fixed.Zero) { Owner = this };
+            combatant.Died += _ =>
+            {
+                if (poseView != null) poseView.SetPose(CharacterPose.Cover);
+                Downed?.Invoke(this);
+            };
+            combatant.Healed += (_, __) => healFlash = 1f;
         }
 
         /// <summary>근접 공격. 엄폐 중이면 엄폐물이 먼저 받는다.</summary>
@@ -87,13 +119,13 @@ namespace AimCombat.Battle
 
         private void Hurt(float damage)
         {
-            Health = Mathf.Max(0f, Health - damage);
             hurtFlash = 1f;
-            if (IsDown)
-            {
-                poseView.SetPose(CharacterPose.Cover);
-                Downed?.Invoke(this);
-            }
+            Combatant.ApplyDamage(FixedConvert.ToFixed(damage), DamageSource.Enemy, null);
+        }
+
+        private void Update()
+        {
+            Combatant.Tick(CombatTime.Delta);
         }
 
         private void LateUpdate()
@@ -103,10 +135,18 @@ namespace AimCombat.Battle
             {
                 color = downTint;
             }
-            else if (hurtFlash > 0f)
+            else
             {
-                hurtFlash = Mathf.Max(0f, hurtFlash - Time.deltaTime / hurtFlashDuration);
-                color = Color.Lerp(Color.white, new Color(1f, 0.45f, 0.45f), hurtFlash);
+                if (healFlash > 0f)
+                {
+                    healFlash = Mathf.Max(0f, healFlash - Time.deltaTime / 0.4f);
+                    color = Color.Lerp(color, healTint, healFlash);
+                }
+                if (hurtFlash > 0f)
+                {
+                    hurtFlash = Mathf.Max(0f, hurtFlash - Time.deltaTime / hurtFlashDuration);
+                    color = Color.Lerp(color, new Color(1f, 0.45f, 0.45f), hurtFlash);
+                }
             }
 
             foreach (SpriteRenderer r in renderers) r.color = color;

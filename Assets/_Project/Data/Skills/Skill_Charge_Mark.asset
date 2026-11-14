@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Charge_Mark
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "\uC57D\uC810 \uD45C\uC2DD"
+  description: "\uC790\uC2E0\uC758 \uC57D\uC810 \uD56D\uBAA9\uC744 \uC62C\uB9AC\uACE0
+    \uB178\uB9AC\uB294 \uC801\uC5D0\uAC8C \uCDE8\uC57D\uC744 \uAC74 \uB4A4 \uC2A4\uD0AC
+    \uD53C\uD574\uB97C \uC900\uB2E4."
+  trigger: 0
+  cooldown: 10
+  effects:
+  - kind: 0
+    target: 0
+    count: 1
+    coefficient: 0
+    status: {fileID: 11400000, guid: 2a2db26d1151a114383134e9ef122b36, type: 2}
+  - kind: 0
+    target: 3
+    count: 1
+    coefficient: 0
+    status: {fileID: 11400000, guid: 11e8fdca246ed8149b39b562a9acebd8, type: 2}
+  - kind: 1
+    target: 3
+    count: 1
+    coefficient: 2
+    status: {fileID: 0}

@@ -5,7 +5,7 @@ using AimCombat.Core.Text;
 namespace AimCombat.Core.Tests
 {
     // DefenceGame(Synthesis.Core.Tests)에서 복사한 파일에 해당하는 테스트만 옮겨 온 것이다.
-    // 원본 위치: SkillRulesTests(TickAccumulator), CsvParserTests(ArmorFormula), StringTableTests(CsvUtil, StringFormatter).
+    // 원본 위치: SkillRulesTests(TickAccumulator), StringTableTests(CsvUtil, StringFormatter).
     public class CopiedCoreTests
     {
         // 명목상 같은 1초라면 프레임률이 달라도 소비한 시간의 합이 같아야 한다.
@@ -63,24 +63,6 @@ namespace AimCombat.Core.Tests
             Assert.Equal(Fixed.FromMilli(50).raw, acc.Consume(50000).raw);
             Assert.Equal(0, acc.Consume(0).raw);
             Assert.Equal(0, acc.Consume(-1000).raw);
-        }
-
-        // 표시와 실제 피해가 같은 공식을 쓰는지. 방어력 0 이면 감소가 없어야 한다.
-        [Fact]
-        public void ArmorFormula_ReducesAndMatchesRatio()
-        {
-            Fixed atk = Fixed.FromInt(100);
-
-            Assert.Equal(atk.raw, ArmorFormula.Reduced(atk, Fixed.Zero).raw);
-            Assert.Equal(0.0, ArmorFormula.ReductionRatio(Fixed.Zero));
-
-            Fixed armor = Fixed.FromInt(20);
-            Fixed reduced = ArmorFormula.Reduced(atk, armor);
-            Assert.True(reduced.raw < atk.raw);
-
-            // 감소율 표시가 실제 감소와 일치해야 한다(고정소수점 반올림 폭 안에서).
-            double byRatio = 100.0 * (1.0 - ArmorFormula.ReductionRatio(armor));
-            Assert.True(System.Math.Abs(byRatio - reduced.ToDoubleForDisplay()) < 0.1);
         }
 
         // 값에 쉼표가 들어가는 문자열이 한 필드로 읽혀야 한다.
