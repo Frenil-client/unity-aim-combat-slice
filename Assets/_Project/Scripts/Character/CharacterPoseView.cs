@@ -33,6 +33,16 @@ namespace AimCombat.Character
 
         public CharacterPose Pose { get; private set; }
 
+        /// <summary>엄폐 포즈의 전신 그림. 컷인 일러스트가 준비되기 전에 버스트 컷인의 임시 그림으로 쓴다.</summary>
+        public Sprite CoverSprite
+        {
+            get
+            {
+                SpriteRenderer renderer = coverRoot != null ? coverRoot.GetComponentInChildren<SpriteRenderer>(true) : null;
+                return renderer != null ? renderer.sprite : null;
+            }
+        }
+
         private void Awake()
         {
             Pose = initialPose;
