@@ -53,6 +53,7 @@ namespace AimCombat.Squad
     /// - 명중하면 Core 의 DamageFormula 로 피해를 계산하고(SPEC 3.1) 팀 공용 버스트 게이지를 채운다(SPEC 3.2).
     /// - 버스트(니케 구조): 아군마다 고유 버스트 단계(1~3)와 버스트 스킬이 있다. 연계가 열리면 지금 단계와 같은 단계이고
     ///   쿨다운이 끝난 살아 있는 아군만 후보가 되고, 후보는 배치 순서대로 BurstCandidates 에 놓인다.
+    ///   같은 단계지만 쿨다운 중인 아군은 BurstWaiting 에 따로 모아 HUD 가 남은 시간을 보여 준다.
     ///   숫자 1-5 키나 HUD 후보 버튼으로 후보의 n번째를, Q 로 첫 번째를 쓴다. 후보가 없으면 그 단계는 쓸 수 없다.
     ///   자동 버스트(Tab)를 켜면 후보의 첫 번째를 잠시 뒤 스스로 쓴다. 풀 버스트 중에는 자동 사격 아군도 조작 중인 아군의 조준점을 함께 쏜다.
     /// - 일반(액티브) 스킬은 아군마다 쿨다운이 차는 대로 각자 쓴다(SPEC 2.1, 3.2). 적이 없으면 아껴 둔다.
@@ -177,6 +178,7 @@ namespace AimCombat.Squad
         private DeterministicRandom critRandom;
         private BurstChain burst;
         private readonly List<int> burstCandidates = new List<int>();
+        private readonly List<int> burstWaiting = new List<int>();
         private float autoBurstTime = -1f;
         private readonly List<Combatant> allies = new List<Combatant>();
         private readonly List<Combatant> enemies = new List<Combatant>();
@@ -199,6 +201,12 @@ namespace AimCombat.Squad
 
         /// <summary>지금 단계에서 버스트를 쓸 수 있는 아군의 배치 순서. 왼쪽부터 정렬돼 있다. 숫자 1-5 키가 이 목록의 n번째를 고른다.</summary>
         public IReadOnlyList<int> BurstCandidates => burstCandidates;
+
+        /// <summary>
+        /// 지금 단계와 버스트 단계는 같지만 버스트 쿨다운이 남아 쓸 수 없는 살아 있는 아군의 배치 순서(SPEC 3.2).
+        /// HUD 가 후보 뒤에 남은 시간과 함께 보여 주기만 한다. 숫자 키와 자동 버스트는 세지 않는다.
+        /// </summary>
+        public IReadOnlyList<int> BurstWaiting => burstWaiting;
 
         public SkillData BurstSkillOf(int index) => members[index].burstSkill;
         public Sprite FaceOf(int index) => members[index].face;
@@ -410,14 +418,24 @@ namespace AimCombat.Squad
                 && member.burstCooldown.IsReady && burst.Accepts(member.BurstStage);
         }
 
-        // 지금 단계에서 쓸 수 있는 아군을 배치 순서대로 모은다. 같은 단계라도 쿨다운 중이거나 쓰러졌으면 빠진다.
+        // 지금 단계에서 쓸 수 있는 아군을 배치 순서대로 모은다. 같은 단계라도 쓰러졌으면 빠지고,
+        // 쿨다운 중이면 후보가 아니라 대기 목록(HUD 표시 전용)에 들어간다.
         private void RefreshBurstCandidates()
         {
             burstCandidates.Clear();
+            burstWaiting.Clear();
             for (int i = 0; i < members.Length; i++)
             {
-                if (CanBurst(members[i])) burstCandidates.Add(i);
+                Member member = members[i];
+                if (CanBurst(member)) burstCandidates.Add(i);
+                else if (IsBurstCoolingDown(member)) burstWaiting.Add(i);
             }
+        }
+
+        private bool IsBurstCoolingDown(Member member)
+        {
+            return !member.IsDown && member.burstSkill != null && member.burstCooldown != null
+                && !member.burstCooldown.IsReady && burst.Accepts(member.BurstStage);
         }
 
         // 자동 버스트: 후보가 생기면 잠시 기다렸다가 첫 번째(가장 왼쪽)를 쓴다. 적이 없으면 아껴 둔다.

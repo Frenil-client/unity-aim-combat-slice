@@ -75,6 +75,10 @@ namespace AimCombat.Battle
         [SerializeField] private Color burstStageColor = new Color(0.9f, 0.45f, 0.1f, 0.85f);
         [SerializeField] private Color burstBlockedColor = new Color(0.35f, 0.3f, 0.3f, 0.85f);
         [SerializeField] private Color fullBurstColor = new Color(0.85f, 0.2f, 0.25f, 0.85f);
+        [Tooltip("버스트를 바로 쓸 수 있는 후보 버튼 바탕.")]
+        [SerializeField] private Color candidateReadyColor = new Color(0.9f, 0.45f, 0.1f, 0.9f);
+        [Tooltip("단계는 맞지만 쿨다운 중이라 누를 수 없는 아군 칸 바탕.")]
+        [SerializeField] private Color candidateWaitingColor = new Color(0.25f, 0.23f, 0.27f, 0.85f);
         [SerializeField] private Color skillReadyColor = new Color(0.9f, 0.45f, 0.1f, 0.85f);
         [SerializeField] private Color selectedColor = new Color(1f, 0.85f, 0.3f, 1f);
         [SerializeField] private Color normalColor = new Color(0f, 0f, 0f, 0.55f);
@@ -189,6 +193,7 @@ namespace AimCombat.Battle
 
             BurstChain burst = squad.Burst;
             IReadOnlyList<int> candidates = squad.BurstCandidates;
+            IReadOnlyList<int> waiting = squad.BurstWaiting;
             string text;
             Color color;
             float gauge = burst.GaugeMax.raw > 0 ? burst.Gauge.raw / (float)burst.GaugeMax.raw : 0f;
@@ -196,8 +201,10 @@ namespace AimCombat.Battle
             {
                 case BurstPhase.Stage:
                     string window = burst.StageTimed ? "  " + Seconds(burst.TimeLeft) + "초" : "";
-                    text = "버스트 " + StageNames[burst.Stage] + " 단계" + window
-                        + (candidates.Count == 0 ? "\n<size=24>쓸 수 있는 " + StageNames[burst.Stage] + "단계 없음</size>" : "\n<size=24>" + (candidates.Count == 1 ? "1" : "1-" + candidates.Count) + " 키로 선택</size>");
+                    string hint = candidates.Count > 0 ? (candidates.Count == 1 ? "1" : "1-" + candidates.Count) + " 키로 선택"
+                        : waiting.Count > 0 ? StageNames[burst.Stage] + "단계 쿨다운 중"
+                        : "쓸 수 있는 " + StageNames[burst.Stage] + "단계 없음";
+                    text = "버스트 " + StageNames[burst.Stage] + " 단계" + window + "\n<size=24>" + hint + "</size>";
                     color = candidates.Count == 0 ? burstBlockedColor : burstStageColor;
                     gauge = 1f;
                     break;
@@ -216,14 +223,33 @@ namespace AimCombat.Battle
             if (burstFrame != null) burstFrame.color = color;
             if (burstGaugeFill != null) burstGaugeFill.rectTransform.localScale = new Vector3(Mathf.Clamp01(gauge), 1f, 1f);
 
+            // 후보(번호, 누를 수 있음) 뒤에 쿨다운 중인 아군(번호 없음, 어둡게, 남은 시간)을 이어 놓는다(SPEC 3.2).
             for (int c = 0; c < candidateButtons.Length; c++)
             {
-                bool show = c < candidates.Count;
-                if (candidateButtons[c].gameObject.activeSelf != show) candidateButtons[c].gameObject.SetActive(show);
+                bool ready = c < candidates.Count;
+                int w = c - candidates.Count;
+                bool show = ready || w < waiting.Count;
+                Button button = candidateButtons[c];
+                if (button.gameObject.activeSelf != show) button.gameObject.SetActive(show);
                 if (!show) continue;
-                int index = candidates[c];
-                candidateTexts[c].text = (c + 1) + "  " + squad.NameOf(index) + "  " + squad.BurstSkillOf(index).DisplayName;
-                if (c < candidateFaces.Length) SetFace(candidateFaces[c], squad.FaceOf(index));
+
+                int index = ready ? candidates[c] : waiting[w];
+                if (ready)
+                {
+                    candidateTexts[c].text = (c + 1) + "  " + squad.NameOf(index) + "  " + squad.BurstSkillOf(index).DisplayName;
+                }
+                else
+                {
+                    string left = Seconds(squad.BurstCooldownOf(index).Remaining);
+                    candidateTexts[c].text = "<color=#B0B0B8>" + squad.NameOf(index) + "  쿨다운</color>  <color=#FFB060>" + left + "초</color>";
+                }
+                button.interactable = ready;
+                ((Image)button.targetGraphic).color = ready ? candidateReadyColor : candidateWaitingColor;
+                if (c < candidateFaces.Length)
+                {
+                    SetFace(candidateFaces[c], squad.FaceOf(index));
+                    candidateFaces[c].color = ready ? Color.white : new Color(0.45f, 0.45f, 0.5f, 1f);
+                }
             }
         }
 
