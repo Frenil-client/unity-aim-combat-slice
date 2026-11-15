@@ -74,6 +74,7 @@ namespace AimCombat.Data
 
         [SerializeField] private string displayName = "";
         [TextArea(2, 4)]
+        [Tooltip("{interval}, {Effect_1_count}, {Effect_1_status.displayName}, {Block_2_chance:percent}\n블록과 효과는 화면 순서대로 1부터 센다. Block_ 접두사를 생략하면 첫 블록이다. 순서를 바꾸면 템플릿의 번호를 확인한다.")]
         [SerializeField] private string description = "";
         [Tooltip("이 스킬이 들어갈 칸. 캐릭터 에셋의 같은 칸에만 연결한다.")]
         [SerializeField] private SkillSlot slot;
@@ -93,7 +94,9 @@ namespace AimCombat.Data
         private SkillDef def;
 
         public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
-        public string Description => description;
+        public string Description => string.IsNullOrEmpty(description) || description.IndexOf('{') < 0
+            ? description : SkillDescription.Resolve(description, ToCore());
+        public string DescriptionTemplate => description;
         public SkillSlot Slot => slot;
         public bool IsBurst => slot == SkillSlot.Burst;
         public int BurstStage => burstStage;
@@ -117,16 +120,18 @@ namespace AimCombat.Data
         }
 
         /// <summary>검증용으로 캐시와 상관없이 새로 만든다. 상태효과도 새로 만든다.</summary>
-        public SkillDef BuildFresh()
+        public SkillDef BuildFresh() => BuildFresh(null);
+
+        public SkillDef BuildFresh(Func<StatusData, StatusDef> buildStatus)
         {
             var fresh = new SkillDef();
-            CopyTo(fresh, cached: false);
+            CopyTo(fresh, cached: false, buildStatus);
             return fresh;
         }
 
         public List<string> Validate() => SkillValidator.Validate(BuildFresh());
 
-        private void CopyTo(SkillDef target, bool cached)
+        private void CopyTo(SkillDef target, bool cached, Func<StatusData, StatusDef> buildStatus = null)
         {
             // 검증용 빌드에서는 상태효과를 새로 만들되 같은 에셋은 같은 인스턴스로 맞춘다.
             // 그래야 "필요 조건과 금지 조건이 같은 효과다" 같은 비교가 맞는다.
@@ -137,7 +142,7 @@ namespace AimCombat.Data
                 if (cached) return data.ToCore();
                 if (!freshCache.TryGetValue(data, out StatusDef built))
                 {
-                    built = data.BuildFresh();
+                    built = buildStatus != null ? buildStatus(data) : data.BuildFresh();
                     freshCache[data] = built;
                 }
                 return built;

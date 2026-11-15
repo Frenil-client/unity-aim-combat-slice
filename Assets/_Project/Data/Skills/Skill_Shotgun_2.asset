@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Shotgun_2
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "배수진"
-  description: "5회 피격될 때마다 자신의 체력을 8% 회복한다. 체력이 50% 이하로 내려가면 10초 동안 치명 확률이 오른다."
+  description: "{triggerCount}회 피격될 때마다 자신의 체력을 최대 체력의 {Effect_1_coefficient:percent}만큼 회복한다. 체력이 {Block_2_healthThreshold:percent} 이하로 내려가면 {Block_2_Effect_1_status.duration}초 동안 {Block_2_Effect_1_status.displayName} 효과를 얻는다(치명 확률 {Block_2_Effect_1_status.value:percent} 증가)."
   slot: 1
   cooldown: 20
   burstStage: 1

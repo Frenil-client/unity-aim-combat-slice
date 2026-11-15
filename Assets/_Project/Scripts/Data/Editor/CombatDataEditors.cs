@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AimCombat.Core;
 using AimCombat.Core.Combat;
@@ -18,9 +19,13 @@ namespace AimCombat.Data.Editors
         {
             DrawDefaultInspector();
             EditorGUILayout.Space();
-            CombatDataEditorUtil.DrawResult(((SkillData)target).Validate());
+            var skill = (SkillData)target;
+            SkillDef def = skill.BuildFresh();
+            CombatDataEditorUtil.DrawResult(SkillValidator.Validate(def));
 
-            SkillDef def = ((SkillData)target).BuildFresh();
+            var unresolved = new HashSet<string>();
+            string description = SkillDescription.Resolve(skill.DescriptionTemplate, def, token => unresolved.Add(token));
+            CombatDataEditorUtil.DrawDescription(description, unresolved);
             EditorGUILayout.LabelField("발동 요약", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(CombatDataEditorUtil.DescribeSkill(def), MessageType.None);
         }
@@ -51,6 +56,95 @@ namespace AimCombat.Data.Editors
 
     internal static class CombatDataEditorUtil
     {
+        public static void DrawDescription(string description, HashSet<string> unresolved)
+        {
+            if (string.IsNullOrEmpty(description)) return;
+            EditorGUILayout.LabelField("설명 미리보기", EditorStyles.miniBoldLabel);
+            EditorGUILayout.HelpBox(description, MessageType.None);
+            if (unresolved.Count > 0)
+                EditorGUILayout.HelpBox("값이나 상태효과 연결을 확인할 변수\n" + string.Join(", ", unresolved), MessageType.Warning);
+        }
+
+        private static class EnumOptions<T> where T : Enum
+        {
+            public static readonly T[] Values = (T[])Enum.GetValues(typeof(T));
+            public static readonly GUIContent[] Labels = Array.ConvertAll(Values, value => new GUIContent(EnumLabel(value)));
+        }
+
+        public static T EnumField<T>(SerializedProperty property, GUIContent label) where T : Enum
+        {
+            T[] values = EnumOptions<T>.Values;
+            int index = property.enumValueIndex;
+            Rect rect = EditorGUILayout.GetControlRect(label != GUIContent.none);
+            using (new EditorGUI.PropertyScope(rect, label, property))
+            {
+                int next = EditorGUI.Popup(rect, label, index, EnumOptions<T>.Labels);
+                if (next != index) property.enumValueIndex = next;
+                return next >= 0 && next < values.Length ? values[next] : default;
+            }
+        }
+
+        public static string EnumLabel(Enum value) => value + " (" + KoreanName(value) + ")";
+
+        private static string KoreanName(object value) => value switch
+        {
+            SkillTrigger.Active => "쿨다운마다 자동 사용",
+            SkillTrigger.Burst => "버스트 단계에서 직접 사용",
+            SkillTrigger.BattleStart => "전투 시작",
+            SkillTrigger.Periodic => "일정 주기마다 발동",
+            SkillTrigger.BurstUsed => "자신이 버스트 사용",
+            SkillTrigger.AllyBurstUsed => "아군이 버스트 사용 (자신 포함)",
+            SkillTrigger.FullBurstStart => "풀 버스트 시작",
+            SkillTrigger.FullBurstEnd => "풀 버스트 종료",
+            SkillTrigger.ShotFired => "일반 공격 발사",
+            SkillTrigger.Hit => "일반 공격 명중",
+            SkillTrigger.CriticalHit => "치명타 명중",
+            SkillTrigger.WeakPointHit => "약점 명중",
+            SkillTrigger.FullChargeHit => "풀 차지 공격 명중",
+            SkillTrigger.LastBulletFired => "마지막 탄환 발사",
+            SkillTrigger.LastBulletHit => "마지막 탄환 명중",
+            SkillTrigger.Reloaded => "재장전 완료",
+            SkillTrigger.Kill => "적 처치",
+            SkillTrigger.Damaged => "피격",
+            SkillTrigger.HealthBelow => "체력이 기준 이하로 감소",
+            SkillTrigger.Healed => "회복 효과 받음",
+            SkillTrigger.StatusGained => "상태효과 획득 또는 중첩 증가",
+            SkillTrigger.StatusMaxStacks => "상태효과 최대 중첩 도달",
+            SkillTrigger.StatusExpired => "상태효과 시간 만료",
+            BurstCondition.Any => "제한 없음",
+            BurstCondition.FullBurstOnly => "풀 버스트 중",
+            BurstCondition.NotFullBurst => "풀 버스트 외",
+            SkillEffectKind.ApplyStatus => "상태효과 부여",
+            SkillEffectKind.Damage => "피해",
+            SkillEffectKind.Heal => "회복",
+            SkillEffectKind.RefillAmmo => "탄창 채우기",
+            SkillEffectKind.RemoveStatus => "상태효과 제거",
+            SkillTarget.Self => "자신",
+            SkillTarget.AllAllies => "아군 전체",
+            SkillTarget.LowestHealthAlly => "체력 비율이 가장 낮은 아군",
+            SkillTarget.FocusEnemy => "조준 중이거나 가장 가까운 적",
+            SkillTarget.NearestEnemies => "가까운 적 N기",
+            SkillTarget.AllEnemies => "적 전체",
+            SkillTarget.RandomEnemies => "무작위 적 N기",
+            SkillTarget.TriggerEnemy => "발동을 일으킨 적",
+            SkillTarget.TriggerAlly => "발동을 일으킨 아군",
+            StatusRule.Stack => "중첩",
+            StatusRule.Refresh => "지속 시간 갱신",
+            StatusRule.Highest => "가장 강한 효과 적용",
+            StatusRule.DamageOverTime => "지속 피해",
+            StatusRule.Control => "행동 불가",
+            StatusRule.Marker => "표식",
+            StatKind.None => "능력치 변경 없음",
+            StatKind.AttackUp => "공격력 증가",
+            StatKind.CritChanceUp => "치명 확률 증가",
+            StatKind.CritBonusUp => "치명 항목 증가",
+            StatKind.WeakPointBonusUp => "약점 항목 증가",
+            StatKind.DamageTakenUp => "받는 피해 증가",
+            StatKind.Slow => "이동 속도 감소",
+            StatKind.DamageUp => "주는 피해 증가",
+            _ => "정의되지 않은 값",
+        };
+
         public static void DrawResult(List<string> errors)
         {
             if (errors.Count == 0)
@@ -120,7 +214,8 @@ namespace AimCombat.Data.Editors
             if (def.IsPassive && def.Chance < Fixed.One) conditions.Add(def.Chance * Fixed.FromInt(100) + "% 확률로");
             if (def.IsPassive && def.Cooldown > Fixed.Zero) conditions.Add("재발동 간격 " + def.Cooldown + "초");
 
-            return conditions.Count > 0 ? when + ", " + string.Join(", ", conditions) : when;
+            string label = def.Trigger + " (" + when + ")";
+            return conditions.Count > 0 ? label + "\n" + string.Join(", ", conditions) : label;
         }
 
         private static string Name(StatusDef status) => status != null ? status.ToString() : "(상태효과 없음)";
@@ -134,13 +229,11 @@ namespace AimCombat.Data.Editors
                 foreach (SkillEffectDef effect in def.Effects)
                 {
                     if (effect == null || effect.Kind != stage) continue;
-                    string what;
-                    if (effect.Kind == SkillEffectKind.ApplyStatus) what = "상태효과 " + Name(effect.Status);
-                    else if (effect.Kind == SkillEffectKind.RemoveStatus) what = "상태효과 지우기 " + Name(effect.Status);
-                    else what = effect.Kind + " " + effect.Coefficient + (effect.CoreHit ? " (코어 명중)" : "");
-                    string target = effect.Target == SkillTarget.NearestEnemies ? "가까운 적 " + effect.Count + "기"
-                        : effect.Target == SkillTarget.RandomEnemies ? "무작위 적 " + effect.Count + "기"
-                        : effect.Target.ToString();
+                    string what = EnumLabel(effect.Kind);
+                    if (effect.Kind == SkillEffectKind.ApplyStatus || effect.Kind == SkillEffectKind.RemoveStatus) what += " " + Name(effect.Status);
+                    if (effect.Kind == SkillEffectKind.Damage || effect.Kind == SkillEffectKind.Heal) what += " " + effect.Coefficient;
+                    if (effect.Kind == SkillEffectKind.Damage && effect.CoreHit) what += " (코어 명중)";
+                    string target = EnumLabel(effect.Target).Replace("N기", effect.Count + "기");
                     if (effect.TargetStatus != null) target += " 중 " + effect.TargetStatus + " 상태";
                     lines.Add("  " + (lines.Count + 1) + ". " + what + " -> " + target);
                 }

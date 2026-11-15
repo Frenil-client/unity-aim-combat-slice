@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Charge_1
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "약점 개방 사격"
-  description: "4초마다 무작위 적 2기를 쏴 피해를 주고 약점 개방을 건다(임전 상태에서는 2초마다). 자신이 버스트 스킬을 쓰면 적 전체에 약점 개방을 건다."
+  description: "{interval}초마다 무작위 적 {Effect_1_count}기를 쏴 피해를 주고 {Effect_1_status.displayName}을 건다({altIntervalStatus.displayName} 상태에서는 {altInterval}초마다). 자신이 버스트 스킬을 쓰면 적 전체에 {Block_2_Effect_1_status.displayName}을 건다."
   slot: 0
   cooldown: 20
   burstStage: 1

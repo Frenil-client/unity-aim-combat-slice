@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Rapid_2
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "마지막 한 발"
-  description: "탄창의 마지막 탄환이 명중하면 맞은 적에게 추가 피해를 준다. 풀 버스트 타임 시작 시 아군 전체에 집중을 건다."
+  description: "탄창의 마지막 탄환이 명중하면 맞은 적에게 공격력의 {Effect_1_coefficient:percent}만큼 추가 피해를 준다. 풀 버스트 타임 시작 시 아군 전체에 {Block_2_Effect_1_status.displayName} 효과를 건다."
   slot: 1
   cooldown: 20
   burstStage: 1

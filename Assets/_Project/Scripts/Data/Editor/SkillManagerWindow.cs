@@ -16,28 +16,36 @@ namespace AimCombat.Data.Editors
     {
         private const string SkillFolder = "Assets/_Project/Data/Skills";
         private const string CharacterFolder = "Assets/_Project/Data/Characters";
+        private const string StatusFolder = "Assets/_Project/Data/Statuses";
 
         private static readonly SkillSlot[] Slots = { SkillSlot.Skill1, SkillSlot.Skill2, SkillSlot.Burst };
         private static readonly string[] SlotLabels = { "스킬 1", "스킬 2", "버스트 스킬" };
         private static readonly string[] SlotProperties = { "skill1", "skill2", "burstSkill" };
         private static readonly string[] SlotFileSuffix = { "1", "2", "Burst" };
+        private static readonly string[] ViewLabels = { "캐릭터별", "전체 표", "상태효과 표" };
+        private enum View { Characters, Skills, Statuses }
 
         // 저장 전 수정 내용으로 만든 미리보기. 검증 결과와 요약 문장에 쓴다.
         private sealed class Preview
         {
             public SkillDef Def;
             public List<string> Errors;
+            public string Description;
+            public HashSet<string> Unresolved;
         }
 
         private readonly List<CharacterData> characters = new List<CharacterData>();
+        private readonly List<StatusData> statuses = new List<StatusData>();
         private readonly Dictionary<Object, SerializedObject> objects = new Dictionary<Object, SerializedObject>();
         private readonly Dictionary<SkillData, Preview> previews = new Dictionary<SkillData, Preview>();
         private readonly bool[] slotOpen = { true, true, true };
         private CharacterData selected;
-        private bool tableView;
+        private StatusData selectedStatus;
+        private View view;
         private Vector2 listScroll;
         private Vector2 detailScroll;
         private Vector2 tableScroll;
+        private Vector2 statusScroll;
         private GUIStyle wrapLabel;
 
         [MenuItem("Aim Combat/스킬 관리")]
@@ -52,19 +60,33 @@ namespace AimCombat.Data.Editors
             var window = GetWindow<SkillManagerWindow>("스킬 관리");
             window.ReloadCharacters();
             window.selected = character;
-            window.tableView = false;
+            window.view = View.Characters;
         }
 
         private void OnEnable()
         {
             saveChangesMessage = "스킬 관리 창에 저장하지 않은 수정이 있습니다.";
             ReloadCharacters();
+            ReloadStatuses();
         }
 
         private void OnProjectChange()
         {
             ReloadCharacters();
+            ReloadStatuses();
+            previews.Clear();
             Repaint();
+        }
+
+        private void ReloadStatuses()
+        {
+            statuses.Clear();
+            foreach (string guid in AssetDatabase.FindAssets("t:StatusData"))
+            {
+                var status = AssetDatabase.LoadAssetAtPath<StatusData>(AssetDatabase.GUIDToAssetPath(guid));
+                if (status != null) statuses.Add(status);
+            }
+            statuses.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
         }
 
         private void ReloadCharacters()
@@ -114,7 +136,11 @@ namespace AimCombat.Data.Editors
                     (gone ?? (gone = new List<Object>())).Add(pair.Key);
                     continue;
                 }
-                if (!pair.Value.hasModifiedProperties && pair.Value.UpdateIfRequiredOrScript() && pair.Key is SkillData skill) previews.Remove(skill);
+                if (!pair.Value.hasModifiedProperties && pair.Value.UpdateIfRequiredOrScript())
+                {
+                    if (pair.Key is SkillData skill) previews.Remove(skill);
+                    if (pair.Key is StatusData) previews.Clear();
+                }
             }
             if (gone == null) return;
             foreach (Object key in gone) objects.Remove(key); // 지워진 에셋. 다른 에셋의 수정은 그대로 둔다.
@@ -146,24 +172,49 @@ namespace AimCombat.Data.Editors
         {
             if (previews.TryGetValue(skill, out Preview preview)) return preview;
 
-            SkillData temp = Instantiate(skill);
-            temp.name = skill.name;
-            temp.hideFlags = HideFlags.HideAndDontSave;
-            var tempObject = new SerializedObject(temp);
-            SerializedProperty property = ObjectOf(skill).GetIterator();
-            bool enterChildren = true;
-            while (property.NextVisible(enterChildren))
+            SkillData temp = DraftCopy(skill);
+            try
             {
-                enterChildren = false;
-                if (property.propertyPath != "m_Script") tempObject.CopyFromSerializedProperty(property);
+                SkillDef def = temp.BuildFresh(PreviewStatus);
+                var unresolved = new HashSet<string>();
+                preview = new Preview
+                {
+                    Def = def,
+                    Errors = SkillValidator.Validate(def),
+                    Description = SkillDescription.Resolve(temp.DescriptionTemplate, def, token => unresolved.Add(token)),
+                    Unresolved = unresolved,
+                };
+                previews[skill] = preview;
+                return preview;
             }
-            tempObject.ApplyModifiedPropertiesWithoutUndo();
+            finally { DestroyImmediate(temp); }
+        }
 
-            SkillDef def = temp.BuildFresh();
-            preview = new Preview { Def = def, Errors = SkillValidator.Validate(def) };
-            DestroyImmediate(temp);
-            previews[skill] = preview;
-            return preview;
+        private StatusDef PreviewStatus(StatusData status)
+        {
+            if (!ObjectOf(status).hasModifiedProperties) return status.BuildFresh();
+            StatusData temp = DraftCopy(status);
+            try { return temp.BuildFresh(); }
+            finally { DestroyImmediate(temp); }
+        }
+
+        private T DraftCopy<T>(T asset) where T : ScriptableObject
+        {
+            T temp = Instantiate(asset);
+            temp.name = asset.name;
+            temp.hideFlags = HideFlags.HideAndDontSave;
+            using (var tempObject = new SerializedObject(temp))
+            {
+                SerializedProperty property = ObjectOf(asset).GetIterator();
+                bool enterChildren = true;
+                while (property.NextVisible(enterChildren))
+                {
+                    enterChildren = false;
+                    if (property.propertyPath != "m_Script") tempObject.CopyFromSerializedProperty(property);
+                }
+                tempObject.ApplyModifiedPropertiesWithoutUndo();
+            }
+            return temp;
         }
 
         private SkillData SlotSkill(CharacterData character, int slot)
@@ -207,9 +258,13 @@ namespace AimCombat.Data.Editors
             DrawToolbar();
 
             EditorGUI.BeginChangeCheck();
-            if (tableView)
+            if (view == View.Skills)
             {
                 DrawTable();
+            }
+            else if (view == View.Statuses)
+            {
+                DrawStatusTable();
             }
             else
             {
@@ -226,13 +281,20 @@ namespace AimCombat.Data.Editors
         private void DrawToolbar()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            tableView = GUILayout.Toggle(tableView, "전체 표", EditorStyles.toolbarButton, GUILayout.Width(70f));
-            if (GUILayout.Button("새 캐릭터", EditorStyles.toolbarButton, GUILayout.Width(70f)))
+            view = (View)GUILayout.Toolbar((int)view, ViewLabels, EditorStyles.toolbarButton, GUILayout.Width(230f));
+            bool statusView = view == View.Statuses;
+            if (GUILayout.Button(statusView ? "새 상태효과" : "새 캐릭터", EditorStyles.toolbarButton, GUILayout.Width(85f)))
             {
-                CreateCharacter();
+                if (statusView) CreateStatus();
+                else CreateCharacter();
                 GUIUtility.ExitGUI();
             }
-            if (GUILayout.Button("새로 고침", EditorStyles.toolbarButton, GUILayout.Width(70f))) ReloadCharacters();
+            if (GUILayout.Button("새로 고침", EditorStyles.toolbarButton, GUILayout.Width(70f)))
+            {
+                ReloadCharacters();
+                ReloadStatuses();
+                previews.Clear();
+            }
             GUILayout.FlexibleSpace();
 
             bool dirty = AnyDirty();
@@ -341,7 +403,10 @@ namespace AimCombat.Data.Editors
 
             SerializedObject so = ObjectOf(skill);
             EditorGUILayout.PropertyField(so.FindProperty("displayName"), new GUIContent("이름"));
-            EditorGUILayout.PropertyField(so.FindProperty("description"), new GUIContent("설명"));
+            SerializedProperty template = so.FindProperty("description");
+            EditorGUILayout.PropertyField(template, new GUIContent("설명 템플릿", template.tooltip));
+            Preview preview = PreviewOf(skill);
+            CombatDataEditorUtil.DrawDescription(preview.Description, preview.Unresolved);
 
             SerializedProperty slotValue = so.FindProperty("slot");
             if (slotValue.enumValueIndex != (int)Slots[slot])
@@ -362,14 +427,13 @@ namespace AimCombat.Data.Editors
             }
 
             SerializedProperty blocks = so.FindProperty("blocks");
-            Preview preview = PreviewOf(skill);
             int remove = -1;
             int moveFrom = -1;
             int moveTo = -1;
             for (int b = 0; b < blocks.arraySize; b++)
             {
                 SkillBlockDef summary = preview.Def.Blocks.Count == blocks.arraySize ? preview.Def.Blocks[b] : null;
-                int action = DrawBlock(blocks.GetArrayElementAtIndex(b), b, blocks.arraySize, summary, preview.Def);
+                int action = DrawBlock(blocks.GetArrayElementAtIndex(b), b, blocks.arraySize, summary);
                 if (action == 0) remove = b;
                 else if (action == -1 || action == 1)
                 {
@@ -395,13 +459,13 @@ namespace AimCombat.Data.Editors
         }
 
         // 발동 블록 하나. 돌려주는 값: 0 = 지우기, -1 = 위로, 1 = 아래로, 그 밖 = 그대로.
-        private int DrawBlock(SerializedProperty block, int index, int count, SkillBlockDef summary, SkillDef skill)
+        private int DrawBlock(SerializedProperty block, int index, int count, SkillBlockDef summary)
         {
             int action = int.MinValue;
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
             EditorGUILayout.BeginHorizontal();
-            string title = "발동 " + (index + 1) + (summary != null ? "   " + CombatDataEditorUtil.DescribeTrigger(summary, skill) : "");
+            string title = "발동 " + (index + 1);
             EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
             using (new EditorGUI.DisabledScope(index == 0))
             {
@@ -415,8 +479,7 @@ namespace AimCombat.Data.Editors
             EditorGUILayout.EndHorizontal();
 
             SerializedProperty triggerProperty = block.FindPropertyRelative("trigger");
-            EditorGUILayout.PropertyField(triggerProperty, new GUIContent("트리거"));
-            var trigger = (SkillTrigger)triggerProperty.enumValueIndex;
+            var trigger = CombatDataEditorUtil.EnumField<SkillTrigger>(triggerProperty, new GUIContent("트리거"));
             bool passive = SkillTriggers.IsPassive(trigger);
 
             // 트리거에 필요한 설정만 보여 준다.
@@ -436,7 +499,7 @@ namespace AimCombat.Data.Editors
                 EditorGUILayout.LabelField("발동 조건", EditorStyles.miniBoldLabel);
                 Field(block, "requireSelfStatus", "자신이 이 상태라면");
                 Field(block, "forbidSelfStatus", "자신이 이 상태가 아니라면");
-                Field(block, "burstState", "풀 버스트 여부");
+                CombatDataEditorUtil.EnumField<BurstCondition>(block.FindPropertyRelative("burstState"), new GUIContent("풀 버스트 여부"));
                 Field(block, "chance", "발동 확률");
                 Field(block, "cooldown", "재발동 간격(초)");
             }
@@ -462,47 +525,30 @@ namespace AimCombat.Data.Editors
             return action;
         }
 
-        // 효과 한 줄. 종류에 필요한 값만 보여 준다. 지우기를 눌렀으면 true.
+        // 효과의 종류와 대상에 필요한 값만 보여 준다. 지우기를 눌렀으면 true.
         private static bool DrawEffect(SerializedProperty effect, int index)
         {
-            SerializedProperty kindProperty = effect.FindPropertyRelative("kind");
-            SerializedProperty targetProperty = effect.FindPropertyRelative("target");
-
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label((index + 1) + ".", GUILayout.Width(20f));
-            EditorGUILayout.PropertyField(kindProperty, GUIContent.none, GUILayout.Width(110f));
-            GUILayout.Label("→", GUILayout.Width(16f));
-            EditorGUILayout.PropertyField(targetProperty, GUIContent.none, GUILayout.Width(130f));
-
-            var kind = (SkillEffectKind)kindProperty.enumValueIndex;
-            var target = (SkillTarget)targetProperty.enumValueIndex;
-            if (target == SkillTarget.NearestEnemies || target == SkillTarget.RandomEnemies) Inline(effect, "count", "수", 22f, 40f);
-            if (kind == SkillEffectKind.Damage || kind == SkillEffectKind.Heal) Inline(effect, "coefficient", kind == SkillEffectKind.Damage ? "계수" : "비율", 30f, 55f);
-            if (kind == SkillEffectKind.ApplyStatus || kind == SkillEffectKind.RemoveStatus)
-                EditorGUILayout.PropertyField(effect.FindPropertyRelative("status"), GUIContent.none, GUILayout.MinWidth(120f));
-            if (kind == SkillEffectKind.Damage) Inline(effect, "coreHit", "코어 명중", 56f, 18f);
+            GUILayout.Label("효과 " + (index + 1), EditorStyles.miniBoldLabel);
             GUILayout.FlexibleSpace();
             bool remove = GUILayout.Button("삭제", GUILayout.Width(44f));
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Space(24f);
-            GUILayout.Label("이 상태가 걸린 대상만", GUILayout.Width(130f));
-            EditorGUILayout.PropertyField(effect.FindPropertyRelative("targetStatus"), GUIContent.none, GUILayout.MaxWidth(260f));
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.EndHorizontal();
+            var kind = CombatDataEditorUtil.EnumField<SkillEffectKind>(effect.FindPropertyRelative("kind"), new GUIContent("종류"));
+            var target = CombatDataEditorUtil.EnumField<SkillTarget>(effect.FindPropertyRelative("target"), new GUIContent("대상"));
+            if (target == SkillTarget.NearestEnemies || target == SkillTarget.RandomEnemies) Field(effect, "count", "대상 수");
+            if (kind == SkillEffectKind.Damage || kind == SkillEffectKind.Heal) Field(effect, "coefficient", kind == SkillEffectKind.Damage ? "피해 계수" : "회복 비율");
+            if (kind == SkillEffectKind.ApplyStatus || kind == SkillEffectKind.RemoveStatus) Field(effect, "status", "상태효과");
+            if (kind == SkillEffectKind.Damage) Field(effect, "coreHit", "코어 명중");
+            Field(effect, "targetStatus", "이 상태가 걸린 대상만");
+            EditorGUILayout.EndVertical();
             return remove;
         }
 
         private static void Field(SerializedProperty parent, string name, string label)
         {
             EditorGUILayout.PropertyField(parent.FindPropertyRelative(name), new GUIContent(label));
-        }
-
-        private static void Inline(SerializedProperty parent, string name, string label, float labelWidth, float fieldWidth)
-        {
-            GUILayout.Label(label, GUILayout.Width(labelWidth));
-            EditorGUILayout.PropertyField(parent.FindPropertyRelative(name), GUIContent.none, GUILayout.Width(fieldWidth));
         }
 
         // 배열을 늘리면 앞 원소가 복사돼 들어온다. 새 블록은 기본값으로 비운다.
@@ -563,7 +609,7 @@ namespace AimCombat.Data.Editors
                         if (GUILayout.Button(i == 0 && b == 0 ? CharacterDisplay(character) : "", EditorStyles.label, GUILayout.Width(nameWidth)))
                         {
                             selected = character;
-                            tableView = false;
+                            view = View.Characters;
                         }
                         GUILayout.Label(b == 0 ? SlotLabel(i, preview) : "", GUILayout.Width(slotWidth));
                         GUILayout.Label(b == 0 ? (skill != null ? SkillName(skill) + (IsDirty(skill) ? " *" : "") : "(비어 있음)") : "", GUILayout.Width(skillWidth));
@@ -592,7 +638,76 @@ namespace AimCombat.Data.Editors
             return "버스트 " + preview.Def.BurstStage + "단계";
         }
 
+        private void DrawStatusTable()
+        {
+            const float keyWidth = 165f, nameWidth = 110f, ruleWidth = 200f, valueWidth = 65f;
+            statusScroll = EditorGUILayout.BeginScrollView(statusScroll);
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label("에셋 키", GUILayout.Width(keyWidth));
+            GUILayout.Label("표시 이름", GUILayout.Width(nameWidth));
+            GUILayout.Label("효과 규칙", GUILayout.Width(ruleWidth));
+            GUILayout.Label("수치", GUILayout.Width(valueWidth));
+            GUILayout.Label("지속 시간");
+            EditorGUILayout.EndHorizontal();
+
+            foreach (StatusData status in statuses)
+            {
+                if (status == null) continue;
+                SerializedObject so = ObjectOf(status);
+                EditorGUILayout.BeginHorizontal();
+                string key = status.name + (IsDirty(status) ? " *" : "");
+                if (GUILayout.Toggle(status == selectedStatus, key, EditorStyles.miniButton, GUILayout.Width(keyWidth)) && status != selectedStatus)
+                {
+                    selectedStatus = status;
+                    GUI.FocusControl(null);
+                }
+                string displayName = so.FindProperty("displayName").stringValue;
+                GUILayout.Label(string.IsNullOrEmpty(displayName) ? status.name : displayName, GUILayout.Width(nameWidth));
+                GUILayout.Label(CombatDataEditorUtil.EnumLabel((StatusRule)so.FindProperty("rule").intValue), GUILayout.Width(ruleWidth));
+                GUILayout.Label(so.FindProperty("value").floatValue.ToString("0.###"), GUILayout.Width(valueWidth));
+                GUILayout.Label(so.FindProperty("permanent").boolValue ? "지속형" : so.FindProperty("duration").floatValue.ToString("0.###") + "초");
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (selectedStatus != null) DrawStatusDetails(selectedStatus);
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawStatusDetails(StatusData status)
+        {
+            SerializedObject so = ObjectOf(status);
+            EditorGUILayout.Space();
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(status.name, EditorStyles.boldLabel);
+            if (GUILayout.Button("에셋 보기", GUILayout.Width(80f))) EditorGUIUtility.PingObject(status);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.PropertyField(so.FindProperty("displayName"), new GUIContent("표시 이름"));
+            CombatDataEditorUtil.EnumField<StatusRule>(so.FindProperty("rule"), new GUIContent("효과 규칙"));
+            CombatDataEditorUtil.EnumField<StatKind>(so.FindProperty("stat"), new GUIContent("능력치"));
+            EditorGUILayout.PropertyField(so.FindProperty("value"), new GUIContent("효과 수치"));
+            EditorGUILayout.PropertyField(so.FindProperty("permanent"), new GUIContent("지속형"));
+            if (!so.FindProperty("permanent").boolValue)
+                EditorGUILayout.PropertyField(so.FindProperty("duration"), new GUIContent("지속 시간(초)"));
+            EditorGUILayout.PropertyField(so.FindProperty("maxStacks"), new GUIContent("최대 중첩 수"));
+            EditorGUILayout.PropertyField(so.FindProperty("tickInterval"), new GUIContent("틱 간격(초)"));
+            EditorGUILayout.PropertyField(so.FindProperty("immunityAfter"), new GUIContent("해제 후 면역 시간(초)"));
+            EditorGUILayout.PropertyField(so.FindProperty("color"), new GUIContent("표시 색"));
+            CombatDataEditorUtil.DrawResult(SkillValidator.Validate(PreviewStatus(status)));
+            EditorGUILayout.EndVertical();
+        }
+
         // ---- 에셋 만들기. 만드는 것은 바로 파일로 생기고, 캐릭터 칸에 넣는 것은 저장을 눌러야 적용된다 ----
+
+        private void CreateStatus()
+        {
+            EnsureFolder(StatusFolder);
+            var status = CreateInstance<StatusData>();
+            AssetDatabase.CreateAsset(status, AssetDatabase.GenerateUniqueAssetPath(StatusFolder + "/Status_New.asset"));
+            ReloadStatuses();
+            selectedStatus = status;
+            statusScroll.y = float.MaxValue;
+        }
 
         private void CreateCharacter()
         {
@@ -602,7 +717,7 @@ namespace AimCombat.Data.Editors
             AssetDatabase.SaveAssets();
             ReloadCharacters();
             selected = character;
-            tableView = false;
+            view = View.Characters;
         }
 
         private SkillData CreateSkill(int slot)

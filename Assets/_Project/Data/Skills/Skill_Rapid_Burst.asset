@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Rapid_Burst
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "전술 지휘"
-  description: "버스트 II. 아군 전체에 전술 지휘와 집중을 걸고 체력이 가장 낮은 아군을 회복한다."
+  description: "버스트 {Skill_burstStage}단계. 아군 전체에 {Effect_1_status.displayName} 및 {Effect_2_status.displayName} 효과를 걸고 체력 비율이 가장 낮은 아군의 체력을 최대 체력의 {Effect_3_coefficient:percent}만큼 회복한다."
   slot: 2
   cooldown: 20
   burstStage: 2

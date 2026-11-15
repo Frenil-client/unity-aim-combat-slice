@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Shotgun_1
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "소이탄"
-  description: "14초마다 가까운 적 3기에 화상과 둔화를 걸고 스킬 피해를 준다. 적을 처치하면 탄창을 즉시 채운다(3초에 한 번)."
+  description: "{cooldown}초마다 가까운 적에게 {Effect_1_status.displayName}({Effect_1_count}기) 및 {Effect_2_status.displayName}({Effect_2_count}기) 효과를 걸고 스킬 피해를 준다({Effect_3_count}기). 적을 처치하면 탄창을 즉시 채운다({Block_2_cooldown}초에 한 번)."
   slot: 0
   cooldown: 20
   burstStage: 1

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Charge_2
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "임전"
-  description: "자신이 버스트 스킬을 쓰면 10초 동안 임전 상태가 된다. 임전 중 일반 공격 2회마다 약점 개방 상태의 적 전체에 코어 명중 피해를 준다. 풀 버스트 타임 시작 시 임전 상태라면 약점 항목이, 아니라면 주는 피해가 오른다."
+  description: "자신이 버스트 스킬을 쓰면 {Effect_1_status.duration}초 동안 {Effect_1_status.displayName} 상태가 된다. {Block_2_requireSelfStatus.displayName} 중 일반 공격 {Block_2_triggerCount}회마다 {Block_2_Effect_1_targetStatus.displayName} 상태의 적 전체에 코어 명중 피해를 준다. 풀 버스트 타임 시작 시 {Block_3_requireSelfStatus.displayName} 상태라면 {Block_3_Effect_1_status.displayName} 효과를 얻고, {Block_4_forbidSelfStatus.displayName} 상태가 아니라면 {Block_4_Effect_1_status.displayName} 효과를 얻는다."
   slot: 1
   cooldown: 20
   burstStage: 1

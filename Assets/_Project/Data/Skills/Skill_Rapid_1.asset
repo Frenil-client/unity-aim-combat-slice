@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Rapid_1
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "속사 집중"
-  description: "12초마다 공격 강화를 한 중첩 쌓고 탄창을 즉시 채운다. 일반 공격이 10회 명중할 때마다 혈기를 한 중첩 쌓는다(공격력 5%, 최대 5중첩, 5초)."
+  description: "{cooldown}초마다 {Effect_1_status.displayName} 효과를 한 중첩 얻고 탄창을 즉시 채운다. 일반 공격이 {Block_2_triggerCount}회 명중할 때마다 {Block_2_Effect_1_status.displayName} 효과를 한 중첩 얻는다(중첩당 공격력 {Block_2_Effect_1_status.value:percent} 증가, 최대 {Block_2_Effect_1_status.maxStacks}중첩, {Block_2_Effect_1_status.duration}초)."
   slot: 0
   cooldown: 20
   burstStage: 1

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Skill_Shotgun_Burst
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
   displayName: "충격 포격"
-  description: "버스트 III. 적 전체에 큰 피해를 주고 기절시킨다. 보스는 저항 게이지가 깎인다."
+  description: "버스트 {Skill_burstStage}단계. 적 전체에 공격력의 {Effect_2_coefficient:percent}만큼 피해를 주고 {Effect_1_status.displayName} 효과를 건다. 보스는 저항 게이지가 {Effect_1_status.value} 감소한다."
   slot: 2
   cooldown: 40
   burstStage: 3
