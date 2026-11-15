@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Rapid_1
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "속사 집중"
+  description: "12초마다 공격 강화를 한 중첩 쌓고 탄창을 즉시 채운다. 일반 공격이 10회 명중할 때마다 혈기를 한 중첩 쌓는다(공격력 5%, 최대 5중첩, 5초)."
+  slot: 0
+  cooldown: 20
+  burstStage: 1
+  nextStageWindow: 10
+  blocks:
+  - trigger: 0
+    cooldown: 12
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 6ba9ed1f0e7b75c41a79dcae1697ae26, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 3
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+  - trigger: 9
+    cooldown: 0
+    triggerCount: 10
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 8d526ebf30718293e0f1a2b3c4d54655, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0

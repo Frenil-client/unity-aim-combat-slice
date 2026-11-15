@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Shotgun_1
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "소이탄"
+  description: "14초마다 가까운 적 3기에 화상과 둔화를 걸고 스킬 피해를 준다. 적을 처치하면 탄창을 즉시 채운다(3초에 한 번)."
+  slot: 0
+  cooldown: 20
+  burstStage: 1
+  nextStageWindow: 10
+  blocks:
+  - trigger: 0
+    cooldown: 14
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 4
+      count: 3
+      coefficient: 0
+      status: {fileID: 11400000, guid: 955ca46b2ea855d41aadf41dd8561e5d, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 0
+      target: 4
+      count: 3
+      coefficient: 0
+      status: {fileID: 11400000, guid: 6d8cb1d11ec5ce64f894a5063805b8c2, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 1
+      target: 4
+      count: 3
+      coefficient: 1.2
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+  - trigger: 16
+    cooldown: 3
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 3
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0

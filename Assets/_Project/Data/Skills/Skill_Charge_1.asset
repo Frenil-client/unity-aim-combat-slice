@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Charge_1
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "약점 개방 사격"
+  description: "4초마다 무작위 적 2기를 쏴 피해를 주고 약점 개방을 건다(임전 상태에서는 2초마다). 자신이 버스트 스킬을 쓰면 적 전체에 약점 개방을 건다."
+  slot: 0
+  cooldown: 20
+  burstStage: 1
+  nextStageWindow: 10
+  blocks:
+  - trigger: 3
+    cooldown: 0
+    triggerCount: 1
+    interval: 4
+    altInterval: 2
+    altIntervalStatus: {fileID: 11400000, guid: 5a2f3b8c0d4e5f60b7c8d9e0f1a21322, type: 2}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 6
+      count: 2
+      coefficient: 0
+      status: {fileID: 11400000, guid: 4f1e2a7b9c3d4e5fa6b7c8d9e0f10211, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 1
+      target: 6
+      count: 2
+      coefficient: 0.8
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+  - trigger: 4
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 5
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 4f1e2a7b9c3d4e5fa6b7c8d9e0f10211, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0

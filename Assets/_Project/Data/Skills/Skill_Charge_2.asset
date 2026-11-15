@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Charge_2
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "임전"
+  description: "자신이 버스트 스킬을 쓰면 10초 동안 임전 상태가 된다. 임전 중 일반 공격 2회마다 약점 개방 상태의 적 전체에 코어 명중 피해를 준다. 풀 버스트 타임 시작 시 임전 상태라면 약점 항목이, 아니라면 주는 피해가 오른다."
+  slot: 1
+  cooldown: 20
+  burstStage: 1
+  nextStageWindow: 10
+  blocks:
+  - trigger: 4
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 5a2f3b8c0d4e5f60b7c8d9e0f1a21322, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+  - trigger: 8
+    cooldown: 0
+    triggerCount: 2
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 11400000, guid: 5a2f3b8c0d4e5f60b7c8d9e0f1a21322, type: 2}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 1
+      target: 5
+      count: 1
+      coefficient: 1
+      status: {fileID: 0}
+      targetStatus: {fileID: 11400000, guid: 4f1e2a7b9c3d4e5fa6b7c8d9e0f10211, type: 2}
+      coreHit: 1
+  - trigger: 6
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 11400000, guid: 5a2f3b8c0d4e5f60b7c8d9e0f1a21322, type: 2}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 6b304c9d1e5f6071c8d9e0f1a2b32433, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+  - trigger: 6
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 11400000, guid: 5a2f3b8c0d4e5f60b7c8d9e0f1a21322, type: 2}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 7c415dae2f607182d9e0f1a2b3c43544, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0

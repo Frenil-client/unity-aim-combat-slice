@@ -4886,24 +4886,21 @@ MonoBehaviour:
     poseView: {fileID: 844389819}
     weapon: {fileID: 844389818}
     unit: {fileID: 844389816}
-    activeSkill: {fileID: 11400000, guid: 32156319cbc165b40a0f52a2ebb7c8e6, type: 2}
-    burstSkill: {fileID: 11400000, guid: b50643524aaf6114f8616ef701cc321b, type: 2}
+    character: {fileID: 11400000, guid: 1a2b3c4d5e6f40718293a4b5c6d7e8f9, type: 2}
     face: {fileID: 21300000, guid: 998d10233c719774f9f087c0718d7dc7, type: 3}
     cutIn: {fileID: 21300000, guid: b24f0d453621abb4a81e1a94b123b1af, type: 3}
   - rig: {fileID: 24334794}
     poseView: {fileID: 24334793}
     weapon: {fileID: 24334792}
     unit: {fileID: 24334790}
-    activeSkill: {fileID: 11400000, guid: 19fe7df3338f56e41b47c32a8ce8ba0b, type: 2}
-    burstSkill: {fileID: 11400000, guid: d021e28e171f9194bbf60f5318b47e3a, type: 2}
+    character: {fileID: 11400000, guid: 2b3c4d5e6f7041829304b5c6d7e8f9a0, type: 2}
     face: {fileID: 21300000, guid: 3a8968104483e1746a83a905b282d511, type: 3}
     cutIn: {fileID: 21300000, guid: 39dab4e8785d0814eb212f404ef11033, type: 3}
   - rig: {fileID: 1130149743}
     poseView: {fileID: 1130149742}
     weapon: {fileID: 1130149741}
     unit: {fileID: 1130149739}
-    activeSkill: {fileID: 11400000, guid: 7b0dd0802557fb44eaea55304e279037, type: 2}
-    burstSkill: {fileID: 11400000, guid: 5be9333f947f4cd4f8741124d73064f0, type: 2}
+    character: {fileID: 11400000, guid: 3c4d5e6f708142930415c6d7e8f9a0b1, type: 2}
     face: {fileID: 21300000, guid: 3461931a8eafe9447af6811ef7e90105, type: 3}
     cutIn: {fileID: 21300000, guid: 4e323cffd1c1f2449973e350d5d2c14b, type: 3}
   selectedIndex: 1

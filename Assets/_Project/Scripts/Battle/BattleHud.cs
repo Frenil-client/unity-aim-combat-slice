@@ -314,8 +314,8 @@ namespace AimCombat.Battle
         {
             if (feedText == null) return;
             // 버스트는 컷인이 같은 내용을 크게 보여주므로 알림을 겹쳐 띄우지 않는다. 컷인이 꺼져 있으면(F2) 알림으로 보여준다.
-            if (skill.Trigger == SkillTrigger.Burst && cutIn != null && cutIn.WillShow) return;
-            string kind = skill.Trigger == SkillTrigger.Burst ? "버스트 " + StageNames[skill.BurstStage] + "  " : "";
+            if (skill.IsBurst && cutIn != null && cutIn.WillShow) return;
+            string kind = skill.IsBurst ? "버스트 " + StageNames[skill.BurstStage] + "  " : "";
             feedText.text = squad.NameOf(index) + "  " + kind + skill.DisplayName;
             feedText.gameObject.SetActive(true);
             feedEndTime = Time.time + feedDuration;

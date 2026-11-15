@@ -51,7 +51,7 @@ namespace AimCombat.Feel
 
         private void OnSkillUsed(int member, SkillData skill)
         {
-            if (skill.Trigger != SkillTrigger.Burst || !WillShow) return;
+            if (!skill.IsBurst || !WillShow) return;
 
             // 컷인 그림이 있으면 그것을, 없으면 엄폐 포즈 그림을 임시로 쓴다.
             Sprite sprite = squad.CutInOf(member);

@@ -12,27 +12,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
   m_Name: Skill_Rapid_Burst
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
-  displayName: "\uC804\uC220 \uC9C0\uD718"
-  description: "\uBC84\uC2A4\uD2B8 II. \uC544\uAD70 \uC804\uCCB4\uC5D0 \uC804\uC220
-    \uC9C0\uD718\uC640 \uC9D1\uC911\uC744 \uAC78\uACE0 \uCCB4\uB825\uC774 \uAC00\uC7A5
-    \uB0AE\uC740 \uC544\uAD70\uC744 \uD68C\uBCF5\uD55C\uB2E4."
-  trigger: 1
+  displayName: "전술 지휘"
+  description: "버스트 II. 아군 전체에 전술 지휘와 집중을 걸고 체력이 가장 낮은 아군을 회복한다."
+  slot: 2
   cooldown: 20
   burstStage: 2
   nextStageWindow: 10
-  effects:
-  - kind: 0
-    target: 1
-    count: 1
-    coefficient: 0
-    status: {fileID: 11400000, guid: c5b80685968841b409a809fd89557127, type: 2}
-  - kind: 0
-    target: 1
-    count: 1
-    coefficient: 0
-    status: {fileID: 11400000, guid: 0dab431a699489446a931fc99dfe6437, type: 2}
-  - kind: 2
-    target: 2
-    count: 1
-    coefficient: 0.3
-    status: {fileID: 0}
+  blocks:
+  - trigger: 1
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 1
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: c5b80685968841b409a809fd89557127, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 0
+      target: 1
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 0dab431a699489446a931fc99dfe6437, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 2
+      target: 2
+      count: 1
+      coefficient: 0.3
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0

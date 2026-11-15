@@ -56,7 +56,8 @@ namespace AimCombat.Squad
     ///   같은 단계지만 쿨다운 중인 아군은 BurstWaiting 에 따로 모아 HUD 가 남은 시간을 보여 준다.
     ///   숫자 1-5 키나 HUD 후보 버튼으로 후보의 n번째를, Q 로 첫 번째를 쓴다. 후보가 없으면 그 단계는 쓸 수 없다.
     ///   자동 버스트(Tab)를 켜면 후보의 첫 번째를 잠시 뒤 스스로 쓴다. 풀 버스트 중에는 자동 사격 아군도 조작 중인 아군의 조준점을 함께 쏜다.
-    /// - 일반(액티브) 스킬은 아군마다 쿨다운이 차는 대로 각자 쓴다(SPEC 2.1, 3.2). 적이 없으면 아껴 둔다.
+    /// - 스킬: 아군마다 캐릭터 에셋(CharacterData)의 스킬 1, 스킬 2, 버스트 세 칸을 가진다. 스킬은 발동 블록의 목록이다(SPEC 3.2).
+    ///   액티브 블록은 쿨다운이 차는 대로 각자 쓰고(적이 없으면 아껴 둔다), 패시브 블록은 SkillTriggerHub 가 전투 이벤트를 받아 실행한다.
     /// - 스킬의 대상 고르기(조준점 아래의 적, 가까운 적)는 ISkillWorld 로 Core 의 SkillRunner 에 공급한다.
     /// - 대상은 Z, X, C, V, B 키나 Select(초상 버튼)로 바꾸고, 왼쪽 Shift 로 고른 아군의 자동 전투를 켜고 끈다.
     ///   자동 전투 중에도 누르는 동안은 수동이다. 손을 떼면 조준점이 고른 아군의 대상으로 옮겨 가고, 장전이나 엄폐 중에는 멈춘다.
@@ -73,17 +74,18 @@ namespace AimCombat.Squad
             public CharacterWeapon weapon;
             [Tooltip("전투 씬에서만 쓴다. 비어 있으면 쓰러지지 않는다(사격장).")]
             public AllyUnit unit;
-            [Tooltip("일반(액티브) 스킬(SPEC 3.2). 쿨다운이 차면 각자 쓴다. 비어 있으면 없다.")]
-            public SkillData activeSkill;
-            [Tooltip("버스트 스킬. 캐릭터 고유의 버스트 단계는 이 에셋에 있다. 비어 있으면 버스트가 없다.")]
-            public SkillData burstSkill;
+            [Tooltip("캐릭터의 스킬 구성(SPEC 3.2): 스킬 1, 스킬 2, 버스트 스킬. 비어 있으면 스킬이 없다(사격장).")]
+            public CharacterData character;
             [Tooltip("HUD 초상과 버스트 후보 버튼에 쓰는 얼굴 그림.")]
             public Sprite face;
             [Tooltip("버스트 컷인 그림. 비어 있으면 엄폐 포즈 그림을 쓴다.")]
             public Sprite cutIn;
 
             [NonSerialized] public Combatant combatant;
-            [NonSerialized] public SkillCooldown cooldown;
+            /// <summary>스킬 1, 2에 든 액티브 발동 블록. 블록마다 쿨다운을 따로 센다.</summary>
+            [NonSerialized] public readonly List<ActiveBlock> actives = new List<ActiveBlock>();
+            /// <summary>캐릭터의 버스트 스킬. 없으면 null.</summary>
+            [NonSerialized] public SkillData burstSkill;
             [NonSerialized] public SkillCooldown burstCooldown;
 
             public int BurstStage => burstSkill != null ? burstSkill.BurstStage : 0;
@@ -98,6 +100,13 @@ namespace AimCombat.Squad
             [NonSerialized] public bool emptyReload;
 
             public bool IsDown => unit != null && unit.IsDown;
+        }
+
+        private sealed class ActiveBlock
+        {
+            public SkillData skill;
+            public SkillBlockDef block;
+            public SkillCooldown cooldown;
         }
 
         private sealed class Tracer
@@ -177,6 +186,9 @@ namespace AimCombat.Squad
         private float rangeOriginZ;
         private DeterministicRandom critRandom;
         private BurstChain burst;
+        private SkillTriggerHub triggers;
+        private static readonly SkillSlot[] SkillSlots = { SkillSlot.Skill1, SkillSlot.Skill2, SkillSlot.Burst };
+        private bool wasFullBurst;
         private readonly List<int> burstCandidates = new List<int>();
         private readonly List<int> burstWaiting = new List<int>();
         private float autoBurstTime = -1f;
@@ -186,6 +198,11 @@ namespace AimCombat.Squad
 
         /// <summary>스킬이나 버스트를 썼다. 인자는 배치 순서와 스킬. HUD 알림이 구독한다.</summary>
         public event Action<int, SkillData> SkillUsed;
+
+        /// <summary>
+        /// 패시브 스킬이 발동했다. 인자는 배치 순서와 스킬. 명중마다 발동하는 패시브도 있어 SkillUsed 와 따로 알린다.
+        /// </summary>
+        public event Action<int, SkillData> PassiveTriggered;
 
         /// <summary>아군이 방아쇠 한 번을 쐈다. 인자는 배치 순서와 충전량. 타격감(총구 화염, 사격음, 흔들림)이 구독한다.</summary>
         public event Action<int, float> ShotFired;
@@ -220,8 +237,18 @@ namespace AimCombat.Squad
         public AllyUnit UnitOf(int index) => members[index].unit;
         public bool IsReloading(int index) => members[index].reloading;
         public Combatant CombatantOf(int index) => members[index].combatant;
-        public SkillData ActiveSkillOf(int index) => members[index].activeSkill;
-        public SkillCooldown CooldownOf(int index) => members[index].cooldown;
+        /// <summary>액티브 발동 블록이 든 스킬(스킬 1을 먼저 본다). HUD 의 쿨다운 줄이 쓴다. 없으면 null.</summary>
+        public SkillData ActiveSkillOf(int index) => members[index].actives.Count > 0 ? members[index].actives[0].skill : null;
+
+        /// <summary>캐릭터의 스킬 구성. 연결되지 않았으면 null.</summary>
+        public CharacterData CharacterOf(int index) => members[index].character;
+
+        /// <summary>칸별 스킬(스킬 1, 스킬 2, 버스트). 모든 캐릭터가 같은 세 칸이라 UI 가 같은 모양으로 보여 줄 수 있다. 비어 있으면 null.</summary>
+        public SkillData SkillOf(int index, SkillSlot slot) => members[index].character != null ? members[index].character.SkillOf(slot) : null;
+
+        /// <summary>패시브 발동 판정(SPEC 3.2 패시브 트리거).</summary>
+        public SkillTriggerHub Triggers => triggers;
+        public SkillCooldown CooldownOf(int index) => members[index].actives.Count > 0 ? members[index].actives[0].cooldown : null;
 
         /// <summary>고른 아군까지 자동으로 쏘게 한다(전원 자동 전투).</summary>
         public bool AutoControlSelected
@@ -262,6 +289,8 @@ namespace AimCombat.Squad
 
             critRandom = new DeterministicRandom(critSeed);
             burst = new BurstChain(ToFixed(burstGaugeMax), ToFixed(fullBurstDuration));
+            triggers = new SkillTriggerHub(this, critRandom);
+            triggers.Triggered += OnPassiveTriggered;
 
             // 궤적 원본을 Instantiate 로 복제하면 같은 오브젝트에 붙은 컴포넌트까지 복제될 수 있다.
             // 빈 오브젝트에 LineRenderer 만 새로 만들고 설정을 옮긴다.
@@ -281,18 +310,45 @@ namespace AimCombat.Squad
                     : new Combatant(member.rig.name, Fixed.One, ToFixed(member.weapon.Attack), Fixed.Zero) { Owner = member.rig };
                 allies.Add(member.combatant);
 
-                CheckSkill(member.activeSkill, SkillTrigger.Active);
-                CheckSkill(member.burstSkill, SkillTrigger.Burst);
-                member.cooldown = member.activeSkill != null ? new SkillCooldown(member.activeSkill.ToCore().Cooldown) : null;
+                CharacterData character = member.character;
+                if (character == null) continue;
+                CheckCharacter(character);
+
+                // 스킬 1, 스킬 2, 버스트 순서로 등록한다. 패시브 블록은 발동 판정(triggers)에,
+                // 액티브 블록은 쿨다운과 함께 따로 모으고, 버스트 블록은 TryBurst 가 직접 실행한다.
+                member.burstSkill = character.BurstSkill;
                 member.burstCooldown = member.burstSkill != null ? new SkillCooldown(member.burstSkill.ToCore().Cooldown, startReady: true) : null;
+                foreach (SkillSlot slot in SkillSlots)
+                {
+                    SkillData skill = character.SkillOf(slot);
+                    if (skill == null) continue;
+                    SkillDef def = skill.ToCore();
+                    triggers.Add(member.combatant, def);
+                    foreach (SkillBlockDef block in def.Blocks)
+                    {
+                        if (block.Trigger != SkillTrigger.Active) continue;
+                        member.actives.Add(new ActiveBlock { skill = skill, block = block, cooldown = new SkillCooldown(block.Cooldown) });
+                    }
+                }
             }
 
             for (int i = 0; i < members.Length; i++)
             {
                 int index = i;
-                CharacterWeapon weapon = members[i].weapon;
-                weapon.Fired += charge01 => ShotFired?.Invoke(index, charge01);
+                Member member = members[i];
+                CharacterWeapon weapon = member.weapon;
+                weapon.Fired += charge01 =>
+                {
+                    ShotFired?.Invoke(index, charge01);
+                    // 이 시점에는 아직 탄을 빼지 않았다. 남은 탄이 1이면 지금 쏜 것이 마지막 탄환이다.
+                    triggers.Raise(SkillTrigger.ShotFired, member.combatant);
+                    if (weapon.Ammo <= 1) triggers.Raise(SkillTrigger.LastBulletFired, member.combatant);
+                    triggers.Flush();
+                };
             }
+
+            // 스킬과 지속 피해로 적이 쓰러진 것도 처치로 센다. 사격 처치는 OnHit 에서 센다.
+            EnemyUnit.NonShotDamaged += OnEnemyNonShotDamaged;
 
             foreach (Member member in members)
             {
@@ -307,6 +363,31 @@ namespace AimCombat.Squad
             for (int i = 0; i < 4; i++) crosshairArms[i] = (RectTransform)crosshair.Find(armNames[i]);
 
             RefreshAmmoText();
+        }
+
+        // 다른 컴포넌트의 Awake(적 배치 등)가 끝난 뒤에 전투 시작 패시브를 세운다. 실행은 첫 Update 의 Tick 에서 한다.
+        private void Start()
+        {
+            triggers.Raise(SkillTrigger.BattleStart);
+        }
+
+        private void OnDestroy()
+        {
+            EnemyUnit.NonShotDamaged -= OnEnemyNonShotDamaged;
+        }
+
+        private void OnPassiveTriggered(Combatant caster, SkillDef skill, SkillBlockDef block)
+        {
+            SkillData data = SkillData.Find(skill);
+            int index = IndexOf(caster);
+            if (data != null && index >= 0) PassiveTriggered?.Invoke(index, data);
+        }
+
+        private void OnEnemyNonShotDamaged(EnemyUnit enemy, DamageEvent e)
+        {
+            // 스킬 실행 도중에 불린다. 줄에만 세우고 실행은 그 스킬이 끝난 뒤의 Flush 가 한다.
+            if (e.Target == null || e.Target.IsAlive || e.Source == null || IndexOf(e.Source) < 0) return;
+            triggers.Raise(SkillTrigger.Kill, e.Source, e.Target);
         }
 
         /// <summary>조작할 아군을 고른다. 전투 불능이면 무시한다.</summary>
@@ -333,6 +414,9 @@ namespace AimCombat.Squad
 
             Fixed deltaTime = CombatTime.Delta;
             burst.Tick(deltaTime);
+            if (wasFullBurst && !burst.IsFullBurst) triggers.Raise(SkillTrigger.FullBurstEnd);
+            wasFullBurst = burst.IsFullBurst;
+            triggers.Tick(deltaTime, EnemyUnit.Alive.Count > 0);
             UpdateSkills(deltaTime);
             if (input.BurstRequest >= 0) TryBurstCandidate(input.BurstRequest);
             UpdateAutoBurst();
@@ -405,9 +489,25 @@ namespace AimCombat.Squad
             if (!CanBurst(member) || !member.burstCooldown.TryUse()) return false;
 
             SkillDef skill = member.burstSkill.ToCore();
-            SkillRunner.Execute(skill, member.combatant, this, critRandom);
+            foreach (SkillBlockDef block in skill.Blocks)
+            {
+                if (block.Trigger == SkillTrigger.Burst) SkillRunner.Execute(block, member.combatant, this, critRandom);
+            }
             SkillUsed?.Invoke(index, member.burstSkill);
+
+            // 버스트 사용 패시브도 연계 처리보다 먼저 실행한다. 그래야 "버스트 사용 시 얻는 상태"를
+            // "풀 버스트 타임 시작 시 그 상태라면" 조건이 읽을 수 있다.
+            triggers.Raise(SkillTrigger.BurstUsed, member.combatant);
+            triggers.Raise(SkillTrigger.AllyBurstUsed, null, member.combatant);
+            triggers.Flush();
+
             burst.Use(skill.BurstStage, skill.NextStageWindow);
+            if (burst.IsFullBurst && !wasFullBurst)
+            {
+                wasFullBurst = true;
+                triggers.Raise(SkillTrigger.FullBurstStart);
+                triggers.Flush();
+            }
             RefreshBurstCandidates();
             return true;
         }
@@ -452,19 +552,30 @@ namespace AimCombat.Squad
             TryBurstCandidate(0);
         }
 
-        /// <summary>배치 순서 index 아군의 액티브 스킬을 쓴다. 쿨다운이 덜 찼거나 쓰러졌으면 쓰지 않는다.</summary>
+        /// <summary>
+        /// 배치 순서 index 아군의 액티브 발동 블록 중 쿨다운이 찬 것을 모두 쓴다. 하나라도 썼으면 true.
+        /// 쓰러졌으면 쓰지 않는다.
+        /// </summary>
         public bool TryActiveSkill(int index)
         {
             if (index < 0 || index >= members.Length) return false;
             Member member = members[index];
-            if (member.IsDown || member.activeSkill == null || member.cooldown == null || !member.cooldown.TryUse()) return false;
+            if (member.IsDown) return false;
 
-            SkillRunner.Execute(member.activeSkill.ToCore(), member.combatant, this, critRandom);
-            SkillUsed?.Invoke(index, member.activeSkill);
-            return true;
+            bool used = false;
+            foreach (ActiveBlock active in member.actives)
+            {
+                if (!active.cooldown.TryUse()) continue;
+                SkillRunner.Execute(active.block, member.combatant, this, critRandom);
+                SkillUsed?.Invoke(index, active.skill);
+                triggers.Flush(); // 이 스킬이 일으킨 처치, 버프 획득 패시브
+                used = true;
+                if (member.IsDown) break;
+            }
+            return used;
         }
 
-        // 일반 스킬과 버스트 쿨다운을 돌린다. 일반 스킬은 조작 여부와 상관없이 각자 쿨다운이 차는 대로 쓴다(니케의 스킬 1, 2처럼).
+        // 액티브 블록과 버스트의 쿨다운을 돌린다. 액티브는 조작 여부와 상관없이 각자 쿨다운이 차는 대로 쓴다(니케의 스킬 1, 2처럼).
         // 적이 없으면 아껴 둔다. 끝에 버스트 후보 목록을 새로 만든다.
         private void UpdateSkills(Fixed deltaTime)
         {
@@ -474,20 +585,23 @@ namespace AimCombat.Squad
                 Member member = members[i];
                 if (member.IsDown) continue;
                 if (member.burstCooldown != null) member.burstCooldown.Tick(deltaTime);
-                if (member.cooldown == null) continue;
-                member.cooldown.Tick(deltaTime);
-                if (enemiesPresent && member.cooldown.IsReady) TryActiveSkill(i);
+
+                bool ready = false;
+                foreach (ActiveBlock active in member.actives)
+                {
+                    active.cooldown.Tick(deltaTime);
+                    ready |= active.cooldown.IsReady;
+                }
+                if (enemiesPresent && ready) TryActiveSkill(i);
             }
             RefreshBurstCandidates();
         }
 
-        // 분대원에 잘못 연결된 스킬을 실행 전에 알린다. 에디터 인스펙터와 같은 검증 규칙이다.
-        private void CheckSkill(SkillData skill, SkillTrigger expected)
+        // 분대원에 잘못 연결된 스킬을 실행 전에 알린다. 에디터 인스펙터, 스킬 관리 창과 같은 검증 규칙이다.
+        private static void CheckCharacter(CharacterData character)
         {
-            if (skill == null) return;
-            if (skill.Trigger != expected) Debug.LogWarning("[Squad] " + skill.name + " 의 트리거가 " + skill.Trigger + " 인데 " + expected + " 칸에 연결됐다.", skill);
-            List<string> errors = skill.Validate();
-            if (errors.Count > 0) Debug.LogWarning("[Squad] " + skill.name + " 검증 실패\n" + string.Join("\n", errors), skill);
+            List<string> errors = character.Validate();
+            if (errors.Count > 0) Debug.LogWarning("[Squad] " + character.name + " 스킬 검증 실패\n" + string.Join("\n", errors), character);
         }
 
         // ---- ISkillWorld: 스킬 실행기가 묻는 전투 상황 ----
@@ -718,6 +832,8 @@ namespace AimCombat.Squad
 
             member.reloading = false;
             member.poseView.SetPose(CharacterPose.Cover);
+            triggers.Raise(SkillTrigger.Reloaded, member.combatant);
+            triggers.Flush();
         }
 
         private void OnAllyDowned(AllyUnit unit)
@@ -774,9 +890,20 @@ namespace AimCombat.Squad
             }
             burst.AddGauge(ToFixed(weapon.GaugePerHit));
 
+            bool killed = victim != null && !victim.IsAlive;
             HitLanded?.Invoke(new ShotHit(
                 Array.IndexOf(members, member), weapon.Kind, target, point, FromFixed(damage),
-                hit.Critical, hit.WeakPoint, victim != null && !victim.IsAlive, charge01));
+                hit.Critical, hit.WeakPoint, killed, charge01));
+
+            // 명중 패시브. 대상(victim)은 TriggerEnemy 가 고른다. 사격장 표적처럼 전투 단위가 없으면 횟수만 센다.
+            // 탄은 발사 처리가 끝난 뒤에 빼므로 남은 탄이 1이면 지금 맞은 것이 마지막 탄환이다.
+            triggers.Raise(SkillTrigger.Hit, attacker, victim);
+            if (hit.Critical) triggers.Raise(SkillTrigger.CriticalHit, attacker, victim);
+            if (hit.WeakPoint) triggers.Raise(SkillTrigger.WeakPointHit, attacker, victim);
+            if (weapon.Kind == WeaponKind.Charge && charge01 >= 1f) triggers.Raise(SkillTrigger.FullChargeHit, attacker, victim);
+            if (weapon.Ammo <= 1) triggers.Raise(SkillTrigger.LastBulletHit, attacker, victim);
+            if (killed) triggers.Raise(SkillTrigger.Kill, attacker, victim);
+            triggers.Flush();
         }
 
         // 맞은 지점의 깊이를 아군 줄(0)에서 적이 나타나는 가장 먼 선(1)까지의 비율로 바꿔 무기의 적정 사거리와 비교한다.

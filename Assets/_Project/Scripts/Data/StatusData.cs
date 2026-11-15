@@ -22,6 +22,8 @@ namespace AimCombat.Data
         [SerializeField] private float value;
         [Tooltip("지속 시간(초).")]
         [SerializeField] private float duration = 5f;
+        [Tooltip("지속형. 시간이 지나도 풀리지 않는다(대상이 쓰러지거나 스킬이 지울 때만 없어진다). 켜면 지속 시간은 쓰지 않는다.")]
+        [SerializeField] private bool permanent;
         [Tooltip("중첩형의 최대 중첩 수.")]
         [Min(1)]
         [SerializeField] private int maxStacks = 1;
@@ -71,6 +73,7 @@ namespace AimCombat.Data
             target.Stat = stat;
             target.Value = FixedConvert.ToFixed(value);
             target.Duration = FixedConvert.ToFixed(duration);
+            target.Permanent = permanent;
             target.MaxStacks = maxStacks;
             target.TickInterval = FixedConvert.ToFixed(tickInterval);
             target.ImmunityAfter = FixedConvert.ToFixed(immunityAfter);

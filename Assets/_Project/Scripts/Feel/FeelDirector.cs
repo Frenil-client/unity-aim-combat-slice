@@ -151,7 +151,7 @@ namespace AimCombat.Feel
         // 버스트: 흔들림과 효과음. 풀 버스트로 넘어가는 3단계는 잠깐 멈춘다.
         private void OnSkillUsed(int member, SkillData skill)
         {
-            if (!feelEnabled || skill.Trigger != SkillTrigger.Burst) return;
+            if (!feelEnabled || !skill.IsBurst) return;
             if (shake != null) shake.Add(settings.burstShake);
             if (feelAudio != null) feelAudio.Play(FeelSound.Burst, 0.7f);
             if (skill.BurstStage >= BurstChain.StageCount && hitStop != null) hitStop.Request(settings.fullBurstHitStop, 0.05f);

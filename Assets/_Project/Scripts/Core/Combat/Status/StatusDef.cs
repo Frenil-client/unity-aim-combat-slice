@@ -13,6 +13,8 @@ namespace AimCombat.Core.Combat
         DamageOverTime,
         /// <summary>행동 불가. 걸린 동안 같은 효과에 면역이고 풀린 뒤 짧은 면역 시간이 있다.</summary>
         Control,
+        /// <summary>표식. 능력치를 바꾸지 않고 걸려 있다는 사실만 스킬의 발동 조건과 대상 조건이 읽는다. 다시 걸리면 시간만 채운다.</summary>
+        Marker,
     }
 
     /// <summary>상태효과가 바꾸는 능력치. 지속 피해와 행동 불가는 능력치를 바꾸지 않으므로 None 이다.</summary>
@@ -31,6 +33,8 @@ namespace AimCombat.Core.Combat
         DamageTakenUp,
         /// <summary>이동 속도 감소 비율. 대상에게 거는 디버프다.</summary>
         Slow,
+        /// <summary>주는 피해 증가(SPEC 3.1 5단계). 공격자에게 거는 버프이고 대상의 받는 피해 증가와 같은 묶음에 더한다.</summary>
+        DamageUp,
     }
 
     /// <summary>
@@ -46,6 +50,8 @@ namespace AimCombat.Core.Combat
         public StatKind Stat;
         public Fixed Value;
         public Fixed Duration;
+        /// <summary>지속형. 시간이 지나도 풀리지 않고 대상이 쓰러지거나 스킬이 지울 때만 없어진다(니케의 [지속]). Duration 은 쓰지 않는다.</summary>
+        public bool Permanent;
         /// <summary>Stack 규칙의 최대 중첩 수. 다른 규칙은 1로 본다.</summary>
         public int MaxStacks = 1;
         /// <summary>DamageOverTime 규칙의 틱 간격(초).</summary>

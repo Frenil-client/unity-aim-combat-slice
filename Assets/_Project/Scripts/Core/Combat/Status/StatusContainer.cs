@@ -17,7 +17,7 @@ namespace AimCombat.Core.Combat
         Ticked,
         /// <summary>시간이 다 돼 풀렸다.</summary>
         Expired,
-        /// <summary>대상이 쓰러져 지워졌다.</summary>
+        /// <summary>대상이 쓰러졌거나 스킬이 지워서 없어졌다.</summary>
         Removed,
     }
 
@@ -143,6 +143,7 @@ namespace AimCombat.Core.Combat
 
                 case StatusRule.Refresh:
                 case StatusRule.Highest:
+                case StatusRule.Marker:
                 {
                     StatusInstance instance = Find(def, null);
                     if (instance == null)
@@ -232,6 +233,38 @@ namespace AimCombat.Core.Combat
             return null;
         }
 
+        /// <summary>시전자와 상관없이 이 효과가 걸려 있는지.</summary>
+        public bool Has(StatusDef def)
+        {
+            if (def == null) return false;
+            foreach (StatusInstance s in active) if (s.Def == def) return true;
+            return false;
+        }
+
+        /// <summary>이 효과의 중첩 수. 걸려 있지 않으면 0. 지속 피해는 시전자별 인스턴스 수다.</summary>
+        public int StacksOf(StatusDef def)
+        {
+            int stacks = 0;
+            foreach (StatusInstance s in active) if (s.Def == def) stacks += s.Stacks;
+            return stacks;
+        }
+
+        /// <summary>이 효과를 시전자와 상관없이 모두 지운다(스킬의 RemoveStatus). 지운 것이 있으면 true. 면역 시간은 남기지 않는다.</summary>
+        public bool Remove(StatusDef def)
+        {
+            if (def == null) return false;
+            bool removed = false;
+            for (int i = active.Count - 1; i >= 0; i--)
+            {
+                StatusInstance s = active[i];
+                if (s.Def != def) continue;
+                active.RemoveAt(i);
+                removed = true;
+                Raise(StatusEventKind.Removed, s.Def, s.Caster, Fixed.Zero);
+            }
+            return removed;
+        }
+
         /// <summary>시간을 진행한다. 지속 피해 틱, 만료, 면역 시간 감소를 처리한다.</summary>
         public void Tick(Fixed deltaTime)
         {
@@ -254,6 +287,8 @@ namespace AimCombat.Core.Combat
                         if (!owner.IsAlive) return; // 쓰러지면서 목록이 비워졌다.
                     }
                 }
+
+                if (s.Def.Permanent) continue; // 지속형은 시간이 줄지 않는다
 
                 for (int k = s.stackTimes.Count - 1; k >= 0; k--)
                 {

@@ -27,6 +27,10 @@ namespace AimCombat.Core.Combat
         public Fixed Charge;
         /// <summary>대상의 받는 피해 증가 디버프 합계.</summary>
         public Fixed DamageTakenUpSum;
+        /// <summary>공격자의 주는 피해 증가 버프 합계. 받는 피해 증가와 같은 묶음에 더한다.</summary>
+        public Fixed DamageUpSum;
+        /// <summary>스킬 피해를 약점(코어) 명중으로 친다. 사격이 아니어도 약점 항목이 붙는다.</summary>
+        public bool SkillCoreHit;
 
         public static DamageInput Shot(Fixed attack, Fixed weaponCoefficient)
         {
@@ -39,7 +43,7 @@ namespace AimCombat.Core.Combat
             };
         }
 
-        /// <summary>스킬 피해. 무기 계수는 1이고 스킬 계수를 쓴다. 약점, 적정 사거리, 차지는 붙지 않는다(SPEC 3.1).</summary>
+        /// <summary>스킬 피해. 무기 계수는 1이고 스킬 계수를 쓴다. 적정 사거리, 차지는 붙지 않고 약점 항목은 코어 명중 스킬(SkillCoreHit)에만 붙는다(SPEC 3.1).</summary>
         public static DamageInput Skill(Fixed attack, Fixed skillCoefficient)
         {
             return new DamageInput
@@ -61,6 +65,7 @@ namespace AimCombat.Core.Combat
                 AttackUpSum = attacker.Statuses.Sum(StatKind.AttackUp);
                 CritBonusUp = attacker.Statuses.Sum(StatKind.CritBonusUp);
                 WeakPointBonusUp = attacker.Statuses.Sum(StatKind.WeakPointBonusUp);
+                DamageUpSum = attacker.Statuses.Sum(StatKind.DamageUp);
             }
             if (target != null)
             {
@@ -100,8 +105,8 @@ namespace AimCombat.Core.Combat
             // 4. 차지 배율
             if (input.IsWeaponShot) damage = damage * (Fixed.One + Clamp01(input.Charge) * ChargeBonus);
 
-            // 5. 받는 피해 증가
-            damage = damage * (Fixed.One + input.DamageTakenUpSum);
+            // 5. 피해 증가 묶음: 대상의 받는 피해 증가 + 공격자의 주는 피해 증가
+            damage = damage * (Fixed.One + input.DamageTakenUpSum + input.DamageUpSum);
 
             // 6. 하한
             return damage < Fixed.One ? Fixed.One : damage;
@@ -131,7 +136,7 @@ namespace AimCombat.Core.Combat
         {
             Fixed sum = Fixed.One;
             if (input.Critical) sum = sum + CritBonus + input.CritBonusUp;
-            if (input.IsWeaponShot && input.WeakPoint) sum = sum + WeakPointBonus + input.WeakPointBonusUp;
+            if ((input.IsWeaponShot && input.WeakPoint) || input.SkillCoreHit) sum = sum + WeakPointBonus + input.WeakPointBonusUp;
             if (input.IsWeaponShot && input.InEffectiveRange) sum = sum + EffectiveRangeBonus;
             if (input.Enhanced) sum = sum + EnhancedBonus;
             return sum;
