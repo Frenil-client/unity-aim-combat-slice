@@ -35,6 +35,8 @@ namespace AimCombat.Battle
         [SerializeField] private Image[] allyHealthFills;
         [SerializeField] private Image[] allyCoverFills;
         [SerializeField] private Image[] allyFrames;
+        [Tooltip("아군 패널의 얼굴 초상. 전투 불능이면 어둡게 한다.")]
+        [SerializeField] private Image[] allyFaces;
 
         [Header("스킬 줄")]
         [SerializeField] private GameObject[] skillRows;
@@ -48,6 +50,7 @@ namespace AimCombat.Battle
         [Tooltip("후보 버튼. 위에서부터 1, 2, 3 ... 번째 후보(숫자 키와 같다).")]
         [SerializeField] private Button[] candidateButtons;
         [SerializeField] private Text[] candidateTexts;
+        [SerializeField] private Image[] candidateFaces;
 
         [Header("자동 전환")]
         [SerializeField] private Button autoBurstButton;
@@ -80,6 +83,7 @@ namespace AimCombat.Battle
 
         private readonly StringBuilder builder = new StringBuilder();
         private float feedEndTime;
+        private AimCombat.Feel.BurstCutIn cutIn;
 
         private void Awake()
         {
@@ -95,6 +99,8 @@ namespace AimCombat.Battle
             }
             if (autoBurstButton != null) autoBurstButton.onClick.AddListener(() => squad.AutoBurst = !squad.AutoBurst);
             if (autoBattleButton != null) autoBattleButton.onClick.AddListener(() => squad.AutoControlSelected = !squad.AutoControlSelected);
+            for (int i = 0; i < allyFaces.Length && i < squad.Count; i++) SetFace(allyFaces[i], squad.FaceOf(i));
+            cutIn = FindFirstObjectByType<AimCombat.Feel.BurstCutIn>(FindObjectsInactive.Include);
             squad.SkillUsed += OnSkillUsed;
             resultText.gameObject.SetActive(false);
             if (feedText != null) feedText.gameObject.SetActive(false);
@@ -138,6 +144,7 @@ namespace AimCombat.Battle
             float coverRatio = cover != null ? cover.Durability / cover.MaxDurability : 0f;
             allyCoverFills[i].rectTransform.localScale = new Vector3(coverRatio, 1f, 1f);
             allyFrames[i].color = unit.IsDown ? downColor : i == squad.SelectedIndex ? selectedColor : normalColor;
+            if (i < allyFaces.Length && allyFaces[i].enabled) allyFaces[i].color = unit.IsDown ? new Color(0.35f, 0.35f, 0.4f, 1f) : Color.white;
 
             if (i < allyStatusTexts.Length) allyStatusTexts[i].text = Describe(squad.CombatantOf(i).Statuses);
             if (i < skillTexts.Length) RefreshSkill(i, unit.IsDown);
@@ -216,6 +223,7 @@ namespace AimCombat.Battle
                 if (!show) continue;
                 int index = candidates[c];
                 candidateTexts[c].text = (c + 1) + "  " + squad.NameOf(index) + "  " + squad.BurstSkillOf(index).DisplayName;
+                if (c < candidateFaces.Length) SetFace(candidateFaces[c], squad.FaceOf(index));
             }
         }
 
@@ -279,6 +287,8 @@ namespace AimCombat.Battle
         private void OnSkillUsed(int index, SkillData skill)
         {
             if (feedText == null) return;
+            // 버스트는 컷인이 같은 내용을 크게 보여주므로 알림을 겹쳐 띄우지 않는다. 컷인이 꺼져 있으면(F2) 알림으로 보여준다.
+            if (skill.Trigger == SkillTrigger.Burst && cutIn != null && cutIn.WillShow) return;
             string kind = skill.Trigger == SkillTrigger.Burst ? "버스트 " + StageNames[skill.BurstStage] + "  " : "";
             feedText.text = squad.NameOf(index) + "  " + kind + skill.DisplayName;
             feedText.gameObject.SetActive(true);
@@ -299,6 +309,14 @@ namespace AimCombat.Battle
                 builder.Append("</color>");
             }
             return builder.ToString();
+        }
+
+        // 얼굴 그림을 넣는다. 그림이 없으면 숨긴다(빈 흰 사각형이 보이지 않게).
+        private static void SetFace(Image image, Sprite sprite)
+        {
+            if (image == null) return;
+            image.sprite = sprite;
+            image.enabled = sprite != null;
         }
 
         private static string Seconds(Fixed value) => (value.raw / (float)Fixed.Scale).ToString("0.0");

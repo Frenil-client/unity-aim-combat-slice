@@ -162,7 +162,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -1300
+        value: -1500
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -171,7 +171,7 @@ AnimationClip:
         outWeight: 0
       - serializedVersion: 3
         time: 0.22
-        value: -560
+        value: -520
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -180,7 +180,7 @@ AnimationClip:
         outWeight: 0
       - serializedVersion: 3
         time: 0.72
-        value: -500
+        value: -460
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -191,7 +191,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_AnchoredPosition.x
-    path: Band/Portrait
+    path: Portrait
     classID: 224
     script: {fileID: 0}
     flags: 16
@@ -231,7 +231,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 4020281223
+      path: 1815500461
       attribute: 1460864421
       script: {fileID: 0}
       typeID: 224
@@ -411,7 +411,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -1300
+        value: -1500
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -420,7 +420,7 @@ AnimationClip:
         outWeight: 0
       - serializedVersion: 3
         time: 0.22
-        value: -560
+        value: -520
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -429,7 +429,7 @@ AnimationClip:
         outWeight: 0
       - serializedVersion: 3
         time: 0.72
-        value: -500
+        value: -460
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -440,7 +440,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_AnchoredPosition.x
-    path: Band/Portrait
+    path: Portrait
     classID: 224
     script: {fileID: 0}
     flags: 16

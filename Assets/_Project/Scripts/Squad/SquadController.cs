@@ -76,6 +76,10 @@ namespace AimCombat.Squad
             public SkillData activeSkill;
             [Tooltip("버스트 스킬. 캐릭터 고유의 버스트 단계는 이 에셋에 있다. 비어 있으면 버스트가 없다.")]
             public SkillData burstSkill;
+            [Tooltip("HUD 초상과 버스트 후보 버튼에 쓰는 얼굴 그림.")]
+            public Sprite face;
+            [Tooltip("버스트 컷인 그림. 비어 있으면 엄폐 포즈 그림을 쓴다.")]
+            public Sprite cutIn;
 
             [NonSerialized] public Combatant combatant;
             [NonSerialized] public SkillCooldown cooldown;
@@ -197,6 +201,8 @@ namespace AimCombat.Squad
         public IReadOnlyList<int> BurstCandidates => burstCandidates;
 
         public SkillData BurstSkillOf(int index) => members[index].burstSkill;
+        public Sprite FaceOf(int index) => members[index].face;
+        public Sprite CutInOf(int index) => members[index].cutIn;
         public SkillCooldown BurstCooldownOf(int index) => members[index].burstCooldown;
 
         public int Count => members.Length;

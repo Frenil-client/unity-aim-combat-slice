@@ -9,12 +9,13 @@ using UnityEngine.UI;
 namespace AimCombat.Feel
 {
     /// <summary>
-    /// 버스트 컷인(SPEC 4절). 버스트를 쓰면 화면을 가로지르는 띠에 그 아군의 그림, 단계, 스킬 이름을 띄운다.
+    /// 버스트 컷인(SPEC 4절). 버스트를 쓰면 화면을 가로지르는 띠와 그 아군의 컷인 그림, 단계, 스킬 이름을 띄운다.
     /// - 움직임은 Timeline 에셋 하나(BurstCutIn.playable)가 정한다. 띠가 들어오고, 그림이 밀려 들어오고, 빠져나간다.
     ///   타이밍은 Timeline 창에서 바로 고칠 수 있고 코드는 내용(그림, 글, 색)만 바꿔 끼운다.
     /// - 실제 시간으로 돈다. 히트스톱으로 게임 시간이 멈춰도 컷인은 끝까지 흐른다.
     /// - 게임을 멈추지 않는다. 니케처럼 연계가 이어지는 동안 짧게 지나간다. 연달아 쓰면 처음부터 다시 튼다.
-    /// - 그림은 컷인 일러스트(RESOURCES.md 4.1)가 준비되기 전이라 엄폐 포즈 그림을 임시로 쓴다.
+    /// - 그림은 아군의 컷인 일러스트(SquadController 의 cutIn)를 쓴다. 없으면 엄폐 포즈 그림으로 대신한다.
+    ///   그림은 띠의 형제라 띠 마스크에 잘리지 않고 위아래로 조금 넘친다(머리와 총이 다 보이게).
     /// - 타격감 연출을 끄면(F2) 컷인도 띄우지 않는다.
     /// </summary>
     public sealed class BurstCutIn : MonoBehaviour
@@ -45,13 +46,20 @@ namespace AimCombat.Feel
             squad.SkillUsed += OnSkillUsed;
         }
 
+        /// <summary>지금 버스트를 쓰면 컷인을 띄우는지. 연출을 끄면(F2) 띄우지 않는다. HUD 가 버스트 알림을 겹쳐 띄우지 않을 때 본다.</summary>
+        public bool WillShow => isActiveAndEnabled && (feel == null || feel.FeelEnabled);
+
         private void OnSkillUsed(int member, SkillData skill)
         {
-            if (skill.Trigger != SkillTrigger.Burst) return;
-            if (feel != null && !feel.FeelEnabled) return;
+            if (skill.Trigger != SkillTrigger.Burst || !WillShow) return;
 
-            CharacterPoseView pose = squad.RigOf(member).GetComponent<CharacterPoseView>();
-            Sprite sprite = pose != null ? pose.CoverSprite : null;
+            // 컷인 그림이 있으면 그것을, 없으면 엄폐 포즈 그림을 임시로 쓴다.
+            Sprite sprite = squad.CutInOf(member);
+            if (sprite == null)
+            {
+                CharacterPoseView pose = squad.RigOf(member).GetComponent<CharacterPoseView>();
+                sprite = pose != null ? pose.CoverSprite : null;
+            }
             portrait.sprite = sprite;
             portrait.enabled = sprite != null;
             if (sprite != null) portrait.preserveAspect = true;
