@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Battle_Building
-  m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
+  m_Shader: {fileID: 4800000, guid: 08252bfeb8d1af545b4cb871152caae9, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -83,6 +83,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _FlashAmount: 0
+    - _FlashBlend: 1
+    - _RimPower: 2
+    - _RimStrength: 0
+    - _OutlineFromCenter: 1
+    - _OutlineWidth: 1.5
+    - _ShadeSoftness: 0.02
+    - _ShadeThreshold: 0.1
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
@@ -118,6 +126,9 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
+    - _FlashColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0.04, g: 0.03, b: 0.07, a: 1}
+    - _ShadeColor: {r: 0.46, g: 0.42, b: 0.62, a: 1}
     - _BaseColor: {r: 0.22, g: 0.2, b: 0.28, a: 1}
     - _Color: {r: 0.21999997, g: 0.19999996, b: 0.27999997, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
