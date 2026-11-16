@@ -140,8 +140,6 @@ MonoBehaviour:
   body: {fileID: 762421897624389813}
   brokenBody: {fileID: 6640568061406489055}
   damagedRatio: 0.5
-  rubbleHeight: 0.35
-  brokenColor: {r: 0.25, g: 0.2, b: 0.2, a: 1}
 --- !u!1 &8911081202760084298
 GameObject:
   m_ObjectHideFlags: 0
