@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using AimCombat.Core.Combat;
 using AimCombat.Data;
 using TMPro;
+using UISystem;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +16,7 @@ namespace AimCombat.Battle
     /// - 같은 프레임에 같은 대상을 같은 종류로 여러 번 맞히면(산탄 탄알, 연사, 광역 스킬) 한 숫자로 합친다.
     /// 숫자는 화면 좌표 UI 라서 맞은 지점을 매 프레임 화면에 투영해 따라간다. 글자 오브젝트는 미리 만들어 돌려 쓴다.
     /// </summary>
-    public sealed class DamageNumbers : MonoBehaviour
+    public sealed class DamageNumbers : UIElement
     {
         private sealed class Number
         {
@@ -77,10 +78,11 @@ namespace AimCombat.Battle
         private void Awake()
         {
             if (viewCamera == null) viewCamera = Camera.main;
-            template.gameObject.SetActive(false);
+            // 원본은 프리팹(DamageNumber)이다. 미리 꺼 둔 복제본을 풀에 넣고 쓸 때 켠다.
             for (int i = 0; i < poolSize; i++)
             {
                 TMP_Text text = Instantiate(template, transform);
+                text.gameObject.SetActive(false);
                 text.name = "Number_" + i;
                 pool.Add(new Number { text = text, rect = text.rectTransform });
             }

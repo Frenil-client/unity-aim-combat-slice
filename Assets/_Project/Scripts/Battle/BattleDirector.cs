@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AimCombat.Input;
 using AimCombat.Squad;
+using UISystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -41,8 +42,8 @@ namespace AimCombat.Battle
         [SerializeField] private EnemyUnit bossTemplate;
         [SerializeField] private Vector3 bossSpawn = new Vector3(0f, 0f, 30f);
         [SerializeField] private float timeLimit = 150f;
-        [Tooltip("스킬 세트 선택 화면. 씬에서는 꺼 두고 실행할 때 이 감독이 켠다. 비어 있으면 바로 전투를 시작한다.")]
-        [SerializeField] private LoadoutSelectScreen loadoutSelect;
+        [Tooltip("전투 시작 전에 스킬 세트 선택 팝업을 연다(고를 세트가 있을 때만). 끄면 바로 전투를 시작한다.")]
+        [SerializeField] private bool selectLoadout = true;
         [Tooltip("웨이브 사이 쉬는 시간(초).")]
         [SerializeField] private float waveBreak = 2.5f;
 
@@ -60,6 +61,8 @@ namespace AimCombat.Battle
         private float startTime;
         private bool started;
         private bool bossSpawned;
+        private bool selecting;
+        private float pausedTimeScale = 1f;
 
         public BattleState State { get; private set; } = BattleState.Playing;
         public int WaveNumber => Mathf.Max(1, waveIndex + 1);
@@ -77,12 +80,54 @@ namespace AimCombat.Battle
         /// <summary>다음 웨이브까지 쉬는 중이면 true.</summary>
         public bool InBreak => Time.time < waveStartTime;
 
-        // 스킬 세트 선택 화면은 씬에서 꺼 두고(편집 중 전투 화면을 가리지 않게) 실행할 때 켠다.
-        // 켜는 순간 화면의 Awake 가 돌아 분대와 이 감독을 끄므로, 둘의 Start(전투 시작)는 선택이 끝난 뒤에 불린다.
+        // 고를 세트가 있으면 전투 시작 전에 스킬 세트 선택 팝업을 UI 스택으로 연다.
+        // 분대와 이 감독을 꺼 두면 둘의 Start(전투 시작)가 팝업이 닫힌 뒤로 미뤄진다.
+        // 게임 시간도 멈춘다. 꺼 둔 두 컴포넌트 밖의 것(상태효과 시간, 연출)까지 흐르지 않게 하기 위해서다.
         private void Awake()
         {
-            if (loadoutSelect != null) loadoutSelect.gameObject.SetActive(true);
+            if (!selectLoadout || UIManager.Instance == null || !LoadoutSelectPopup.HasChoice(squad)) return;
+            selecting = true;
+            squad.enabled = false;
+            enabled = false;
+            pausedTimeScale = Time.timeScale;
+            Time.timeScale = 0f;
+            _ = SelectLoadoutAsync();
         }
+
+        private async Awaitable SelectLoadoutAsync()
+        {
+            try
+            {
+                LoadoutSelectPopup popup = await UIManager.Instance.OpenAsync<LoadoutSelectPopup>();
+                if (popup != null)
+                {
+                    popup.Bind(squad);
+                    await popup.WaitForCloseAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e, this);
+            }
+            finally
+            {
+                EndSelection();
+            }
+        }
+
+        // 선택이 끝나면 시간을 되돌리고 분대와 감독을 켠다(Start 가 돌아 전투가 시작된다).
+        // 선택 중에 씬을 떠나면(다시 시작, 플레이 종료) 시간만 되돌린다.
+        private void EndSelection()
+        {
+            if (!selecting) return;
+            selecting = false;
+            Time.timeScale = pausedTimeScale > 0f ? pausedTimeScale : 1f;
+            if (this == null) return;
+            if (squad != null) squad.enabled = true;
+            enabled = true;
+        }
+
+        private void OnDestroy() => EndSelection();
 
         private void Start()
         {

@@ -1,5 +1,6 @@
 using AimCombat.Weapons;
 using TMPro;
+using UISystem;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,7 +30,7 @@ namespace AimCombat.Squad
     /// 모양은 씬에 구성돼 있다. 팔, 원, 잔탄은 모두 조준 범위(reticle)의 가장자리에 앵커로 붙어 있어 여기서는 범위의 크기만 바꾼다.
     /// 잔탄의 이름표, 숫자, 재장전 막대는 세로 레이아웃이라 재장전 막대가 꺼지면 저절로 줄어든다.
     /// </summary>
-    public sealed class CrosshairView : MonoBehaviour
+    public sealed class CrosshairView : UIElement
     {
         private static readonly int PulseId = Animator.StringToHash("Pulse");
 

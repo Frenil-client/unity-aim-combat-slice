@@ -5,6 +5,7 @@ using AimCombat.Core.Combat;
 using AimCombat.Data;
 using AimCombat.Squad;
 using TMPro;
+using UISystem;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,9 +19,11 @@ namespace AimCombat.Battle
     /// - 스킬 줄은 보여주기만 한다. 일반 스킬은 각자 쿨다운이 차는 대로 쓴다.
     /// - 버스트 패널은 게이지, 지금 단계, 창의 남은 시간, 풀 버스트를 보여준다. 단계가 열리면 그 단계에서 쓸 수 있는 아군이
     ///   배치 순서대로 후보 버튼에 뜨고, n번째 버튼은 숫자 n 키와 같다. 쓸 수 있는 아군이 없으면 그렇다고 알린다.
-    /// UI 시스템 패키지로 옮기는 것은 리소스가 준비된 뒤에 한다.
+    /// UI 스택(com.frenil.uisystem)에서 전투 씬의 주 화면(UIScreen)이다. 씬에 놓인 채로 UIManager 가 입양해 스택 바닥에 둔다.
+    /// 조준점, 피해 숫자, 보스 부위 표시, 버스트 컷인은 이 화면에 얹힌 부품(UIElement)이다.
+    /// 스킬 세트 선택과 결과는 팝업(UIPopup)이라 위에 쌓이고, 팝업이 덮는 동안에는 전투 HUD 묶음을 숨긴다.
     /// </summary>
-    public sealed class BattleHud : MonoBehaviour
+    public sealed class BattleHud : UIScreen
     {
         private static readonly string[] SelectKeyNames = { "Z", "X", "C", "V", "B" };
         private static readonly string[] StageNames = { "-", "I", "II", "III" };
@@ -28,40 +31,24 @@ namespace AimCombat.Battle
         [SerializeField] private SquadController squad;
         [SerializeField] private BattleDirector director;
         [SerializeField] private TMP_Text waveText;
-        [Tooltip("승패 문구. 전투 HUD 묶음 밖에 둔다(끝나면 묶음은 숨기고 이것만 남는다).")]
-        [SerializeField] private TMP_Text resultText;
-        [Tooltip("전투 HUD 묶음. 전투가 끝나면 숨긴다.")]
+        [Tooltip("전투 HUD 묶음. 팝업(스킬 세트 선택, 결과)이 덮는 동안 숨긴다. 루트의 CanvasGroup 은 UI 시스템이 쓰므로 콘텐츠 아래의 것이다.")]
         [SerializeField] private CanvasGroup hudGroup;
 
-        [Header("아군 패널")]
-        [SerializeField] private Button[] allyButtons;
-        [SerializeField] private TMP_Text[] allyTexts;
-        [SerializeField] private TMP_Text[] allyStatusTexts;
-        [SerializeField] private Image[] allyHealthFills;
-        [SerializeField] private Image[] allyCoverFills;
-        [SerializeField] private Image[] allyFrames;
-        [Tooltip("아군 패널의 얼굴 초상. 전투 불능이면 어둡게 한다.")]
-        [SerializeField] private Image[] allyFaces;
-
-        [Header("스킬 줄")]
-        [SerializeField] private GameObject[] skillRows;
-        [SerializeField] private TMP_Text[] skillTexts;
-        [SerializeField] private Image[] skillFills;
+        [Header("아군 열")]
+        [Tooltip("아군 한 명의 열(패널, 스킬 줄, 버프 줄). 배치 순서대로. 같은 프리팹(AllyPanel)이다.")]
+        [SerializeField] private AllyPanelView[] allies;
 
         [Header("버스트")]
         [SerializeField] private TMP_Text burstText;
         [SerializeField] private Image burstFrame;
         [SerializeField] private Image burstGaugeFill;
-        [Tooltip("후보 버튼. 위에서부터 1, 2, 3 ... 번째 후보(숫자 키와 같다).")]
-        [SerializeField] private Button[] candidateButtons;
-        [SerializeField] private TMP_Text[] candidateTexts;
-        [SerializeField] private Image[] candidateFaces;
+        [Tooltip("후보 버튼. 1, 2, 3 ... 번째 후보(숫자 키와 같다). 같은 프리팹(BurstCandidate)이다.")]
+        [SerializeField] private BurstCandidateView[] candidateViews;
 
         [Header("자동 전환")]
-        [SerializeField] private Button autoBurstButton;
-        [SerializeField] private TMP_Text autoBurstText;
-        [SerializeField] private Button autoBattleButton;
-        [SerializeField] private TMP_Text autoBattleText;
+        [Tooltip("같은 프리팹(ToggleButton)이다.")]
+        [SerializeField] private ToggleButtonView autoBurstToggle;
+        [SerializeField] private ToggleButtonView autoBattleToggle;
 
         [Header("보스")]
         [SerializeField] private GameObject bossPanel;
@@ -93,25 +80,26 @@ namespace AimCombat.Battle
         private readonly StringBuilder builder = new StringBuilder();
         private float feedEndTime;
         private AimCombat.Feel.BurstCutIn cutIn;
+        private bool resultRequested;
+        private float hudAlpha = 1f;
 
         private void Awake()
         {
-            for (int i = 0; i < allyButtons.Length; i++)
+            for (int i = 0; i < allies.Length; i++)
             {
                 int index = i;
-                allyButtons[i].onClick.AddListener(() => squad.Select(index));
+                allies[i].Button.onClick.AddListener(() => squad.Select(index));
+                if (i < squad.Count) SetFace(allies[i].Face, squad.FaceOf(i));
             }
-            for (int i = 0; i < candidateButtons.Length; i++)
+            for (int i = 0; i < candidateViews.Length; i++)
             {
                 int candidate = i;
-                candidateButtons[i].onClick.AddListener(() => squad.TryBurstCandidate(candidate));
+                candidateViews[i].Button.onClick.AddListener(() => squad.TryBurstCandidate(candidate));
             }
-            if (autoBurstButton != null) autoBurstButton.onClick.AddListener(() => squad.AutoBurst = !squad.AutoBurst);
-            if (autoBattleButton != null) autoBattleButton.onClick.AddListener(() => squad.AutoControlSelected = !squad.AutoControlSelected);
-            for (int i = 0; i < allyFaces.Length && i < squad.Count; i++) SetFace(allyFaces[i], squad.FaceOf(i));
+            if (autoBurstToggle != null) autoBurstToggle.Button.onClick.AddListener(() => squad.AutoBurst = !squad.AutoBurst);
+            if (autoBattleToggle != null) autoBattleToggle.Button.onClick.AddListener(() => squad.AutoControlSelected = !squad.AutoControlSelected);
             cutIn = FindFirstObjectByType<AimCombat.Feel.BurstCutIn>(FindObjectsInactive.Include);
             squad.SkillUsed += OnSkillUsed;
-            resultText.gameObject.SetActive(false);
             if (feedText != null) feedText.gameObject.SetActive(false);
         }
 
@@ -123,7 +111,7 @@ namespace AimCombat.Battle
             string waveName = director.BossWave ? "BOSS" : "WAVE " + director.WaveNumber + " / " + director.WaveCount;
             waveText.text = waveName + "    " + time + "    " + wave;
 
-            for (int i = 0; i < allyTexts.Length && i < squad.Count; i++) RefreshAlly(i);
+            for (int i = 0; i < allies.Length && i < squad.Count; i++) RefreshAlly(i);
 
             RefreshBurst();
             RefreshToggles();
@@ -131,44 +119,57 @@ namespace AimCombat.Battle
 
             if (feedText != null && feedText.gameObject.activeSelf && Time.time >= feedEndTime) feedText.gameObject.SetActive(false);
 
-            // 끝나면 결과 문구만 남기고 전투 HUD 묶음(조준점, 피해 숫자, 알림, 아군 패널, 버스트, 보스 표시)을 숨긴다.
-            // 결과 문구는 묶음 밖에 있다.
-            if (director.State != BattleState.Playing && !resultText.gameObject.activeSelf)
+            // 끝나면 결과 팝업을 연다. 팝업이 이 화면을 덮으므로 전투 HUD 묶음은 OnCoveredChanged 에서 숨겨진다.
+            if (director.State != BattleState.Playing && !resultRequested)
             {
-                if (hudGroup != null)
-                {
-                    hudGroup.alpha = 0f;
-                    hudGroup.blocksRaycasts = false;
-                    hudGroup.interactable = false;
-                }
-                resultText.gameObject.SetActive(true);
-                resultText.text = (director.State == BattleState.Victory ? "승리" : "패배") + "\n<size=36>누르거나 R 키로 다시 시작</size>";
+                resultRequested = true;
+                _ = ShowResultAsync(director.State == BattleState.Victory);
             }
+        }
+
+        private async Awaitable ShowResultAsync(bool victory)
+        {
+            UIManager manager = UIManager.Instance;
+            if (manager == null) return;
+            BattleResultPopup popup = await manager.OpenAsync<BattleResultPopup>();
+            if (popup != null) popup.Show(victory);
+        }
+
+        // 위에 팝업이 덮이면 전투 HUD 묶음(조준점, 피해 숫자, 알림, 아군 패널, 버스트, 보스 표시)을 숨기고, 걷히면 되돌린다.
+        // 켜고 끄지 않고 투명하게만 해서 HUD 가 스스로 켜고 끄는 것과 초기화 순서를 건드리지 않는다.
+        protected override void OnCoveredChanged(bool covered)
+        {
+            if (hudGroup == null) return;
+            if (covered) hudAlpha = hudGroup.alpha;
+            hudGroup.alpha = covered ? 0f : hudAlpha;
+            hudGroup.blocksRaycasts = !covered;
+            hudGroup.interactable = !covered;
         }
 
         private void RefreshAlly(int i)
         {
+            AllyPanelView view = allies[i];
             AllyUnit unit = squad.UnitOf(i);
             var weapon = squad.WeaponOf(i);
             string key = i < SelectKeyNames.Length ? SelectKeyNames[i] : (i + 1).ToString();
             SkillData burstSkill = squad.BurstSkillOf(i);
             string stage = burstSkill != null ? "  <size=24>[B" + StageNames[burstSkill.BurstStage] + "]</size>" : "";
             string state = unit.IsDown ? "전투 불능" : squad.IsReloading(i) ? "재장전" : weapon.Ammo + " / " + weapon.MagazineSize;
-            allyTexts[i].text = key + "  " + squad.NameOf(i) + stage + "\n" + state;
+            view.Label.text = key + "  " + squad.NameOf(i) + stage + "\n" + state;
 
-            allyHealthFills[i].fillAmount = unit.Health / unit.MaxHealth;
+            view.HealthFill.fillAmount = unit.Health / unit.MaxHealth;
             CoverObject cover = unit.Cover;
             float coverRatio = cover != null ? cover.Durability / cover.MaxDurability : 0f;
-            allyCoverFills[i].fillAmount = coverRatio;
-            allyFrames[i].color = unit.IsDown ? downColor : i == squad.SelectedIndex ? selectedColor : normalColor;
-            if (i < allyFaces.Length && allyFaces[i].enabled) allyFaces[i].color = unit.IsDown ? new Color(0.35f, 0.35f, 0.4f, 1f) : Color.white;
+            view.CoverFill.fillAmount = coverRatio;
+            view.Frame.color = unit.IsDown ? downColor : i == squad.SelectedIndex ? selectedColor : normalColor;
+            if (view.Face.enabled) view.Face.color = unit.IsDown ? new Color(0.35f, 0.35f, 0.4f, 1f) : Color.white;
 
-            if (i < skillTexts.Length) RefreshSkill(i, unit.IsDown);
-            if (i < allyStatusTexts.Length) allyStatusTexts[i].text = Describe(squad.CombatantOf(i).Statuses);
+            RefreshSkill(view, i, unit.IsDown);
+            view.Status.text = Describe(squad.CombatantOf(i).Statuses);
         }
 
         // 스킬 줄: 일반 스킬 이름과 쿨다운(막대), 오른쪽에 버스트 쿨다운.
-        private void RefreshSkill(int i, bool down)
+        private void RefreshSkill(AllyPanelView view, int i, bool down)
         {
             SkillData skill = squad.ActiveSkillOf(i);
             SkillCooldown cooldown = squad.CooldownOf(i);
@@ -177,7 +178,7 @@ namespace AimCombat.Battle
             // 액티브 스킬이 없는 세트는 줄을 숨긴다. 아군 열은 레이아웃으로 쌓여 있어 버프 줄이 저절로 그 자리로 내려온다.
             // 스킬은 전투 시작(스킬 세트 선택 뒤)에 등록되므로 처음에는 비어 있다가 나중에 생긴다. 숨겼다가도 다시 켠다.
             bool hasRow = skill != null;
-            if (skillRows[i].activeSelf != hasRow) skillRows[i].SetActive(hasRow);
+            if (view.SkillRow.activeSelf != hasRow) view.SkillRow.SetActive(hasRow);
             if (!hasRow) return;
 
             string text = "";
@@ -195,9 +196,9 @@ namespace AimCombat.Battle
                 text += "  <color=#FFB060>B " + burstState + "</color>";
             }
 
-            skillTexts[i].text = text;
-            skillFills[i].fillAmount = progress;
-            skillFills[i].color = ready ? skillReadyColor : new Color(0.3f, 0.55f, 0.9f, 0.6f);
+            view.SkillLabel.text = text;
+            view.SkillFill.fillAmount = progress;
+            view.SkillFill.color = ready ? skillReadyColor : new Color(0.3f, 0.55f, 0.9f, 0.6f);
         }
 
         // 충전 중: 게이지 %. 연계 중: 지금 단계와 창의 남은 시간(1단계는 제한 없음), 후보가 없으면 그렇다고 알린다. 풀 버스트: 남은 시간.
@@ -238,47 +239,43 @@ namespace AimCombat.Battle
             if (burstGaugeFill != null) burstGaugeFill.fillAmount = Mathf.Clamp01(gauge);
 
             // 후보(번호, 누를 수 있음) 뒤에 쿨다운 중인 아군(번호 없음, 어둡게, 남은 시간)을 이어 놓는다(SPEC 3.2).
-            for (int c = 0; c < candidateButtons.Length; c++)
+            for (int c = 0; c < candidateViews.Length; c++)
             {
                 bool ready = c < candidates.Count;
                 int w = c - candidates.Count;
                 bool show = ready || w < waiting.Count;
-                Button button = candidateButtons[c];
-                if (button.gameObject.activeSelf != show) button.gameObject.SetActive(show);
+                BurstCandidateView view = candidateViews[c];
+                if (view.gameObject.activeSelf != show) view.gameObject.SetActive(show);
                 if (!show) continue;
 
                 int index = ready ? candidates[c] : waiting[w];
                 if (ready)
                 {
-                    candidateTexts[c].text = (c + 1) + "  " + squad.NameOf(index) + "  " + squad.BurstSkillOf(index).DisplayName;
+                    view.Label.text = (c + 1) + "  " + squad.NameOf(index) + "  " + squad.BurstSkillOf(index).DisplayName;
                 }
                 else
                 {
                     string left = Seconds(squad.BurstCooldownOf(index).Remaining);
-                    candidateTexts[c].text = "<color=#B0B0B8>" + squad.NameOf(index) + "  쿨다운</color>  <color=#FFB060>" + left + "초</color>";
+                    view.Label.text = "<color=#B0B0B8>" + squad.NameOf(index) + "  쿨다운</color>  <color=#FFB060>" + left + "초</color>";
                 }
-                button.interactable = ready;
-                ((Image)button.targetGraphic).color = ready ? candidateReadyColor : candidateWaitingColor;
-                if (c < candidateFaces.Length)
-                {
-                    SetFace(candidateFaces[c], squad.FaceOf(index));
-                    candidateFaces[c].color = ready ? Color.white : new Color(0.45f, 0.45f, 0.5f, 1f);
-                }
+                view.Button.interactable = ready;
+                view.Back.color = ready ? candidateReadyColor : candidateWaitingColor;
+                SetFace(view.Face, squad.FaceOf(index));
+                view.Face.color = ready ? Color.white : new Color(0.45f, 0.45f, 0.5f, 1f);
             }
         }
 
         private void RefreshToggles()
         {
-            SetToggle(autoBurstButton, autoBurstText, squad.AutoBurst, "자동 버스트", "Tab");
-            SetToggle(autoBattleButton, autoBattleText, squad.AutoControlSelected, "자동 전투", "Shift");
+            SetToggle(autoBurstToggle, squad.AutoBurst, "자동 버스트", "Tab");
+            SetToggle(autoBattleToggle, squad.AutoControlSelected, "자동 전투", "Shift");
         }
 
-
-        private void SetToggle(Button button, TMP_Text label, bool on, string name, string key)
+        private void SetToggle(ToggleButtonView toggle, bool on, string name, string key)
         {
-            if (button == null) return;
-            label.text = name + " " + (on ? "ON" : "OFF") + "\n<size=22>(" + key + ")</size>";
-            ((Image)button.targetGraphic).color = on ? toggleOnColor : normalColor;
+            if (toggle == null) return;
+            toggle.Label.text = name + " " + (on ? "ON" : "OFF") + "\n<size=22>(" + key + ")</size>";
+            toggle.Back.color = on ? toggleOnColor : normalColor;
         }
 
         // 보스가 나와 있는 동안만 보인다. 강타 예고 중에는 경고와 저지 진행 막대(표적들이 깎인 비율)를 띄운다.

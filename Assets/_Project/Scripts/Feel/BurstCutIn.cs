@@ -3,6 +3,7 @@ using AimCombat.Core.Combat;
 using AimCombat.Data;
 using AimCombat.Squad;
 using TMPro;
+using UISystem;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.UI;
@@ -19,7 +20,7 @@ namespace AimCombat.Feel
     ///   그림은 띠의 형제라 띠 마스크에 잘리지 않고 위아래로 조금 넘친다(머리와 총이 다 보이게).
     /// - 타격감 연출을 끄면(F2) 컷인도 띄우지 않는다.
     /// </summary>
-    public sealed class BurstCutIn : MonoBehaviour
+    public sealed class BurstCutIn : UIElement
     {
         private static readonly string[] StageNames = { "", "I", "II", "III" };
 

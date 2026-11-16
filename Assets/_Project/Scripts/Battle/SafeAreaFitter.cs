@@ -1,3 +1,4 @@
+using UISystem;
 using UnityEngine;
 
 namespace AimCombat.Battle
@@ -9,7 +10,7 @@ namespace AimCombat.Battle
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     [ExecuteAlways]
-    public sealed class SafeAreaFitter : MonoBehaviour
+    public sealed class SafeAreaFitter : UIElement
     {
         private Rect applied;
         private Vector2Int screen;

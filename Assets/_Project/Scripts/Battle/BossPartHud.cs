@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
+using UISystem;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,13 +15,13 @@ namespace AimCombat.Battle
     /// 모양은 씬에 구성돼 있다. 부위 표시는 원본(BossPartView)을 부위 수만큼 복제하고, 원 안팎의 배치는 원본 안의 앵커와 레이아웃이 정한다.
     /// 여기서는 화면 위치, 원 지름(부위의 화면 크기), 값만 넣는다. 맥동은 애니메이션 클립이고 빠르기만 정한다.
     /// </summary>
-    public sealed class BossPartHud : MonoBehaviour
+    public sealed class BossPartHud : UIElement
     {
         private static readonly int PulseId = Animator.StringToHash("Pulse");
 
         [SerializeField] private BattleDirector director;
         [SerializeField] private Camera viewCamera;
-        [Tooltip("부위 표시 원본. 꺼 둔 채로 두고 부위 수만큼 복제한다.")]
+        [Tooltip("부위 표시 원본(프리팹 BossPartView). 부위 수만큼 이 아래에 복제한다.")]
         [SerializeField] private BossPartView viewTemplate;
         [Tooltip("경고 표시. 보스 머리 위 지점에 놓이고, 글자는 그 위로 떨어져 있다(씬에서 정한다).")]
         [SerializeField] private RectTransform warning;
@@ -42,7 +43,6 @@ namespace AimCombat.Battle
         private void Awake()
         {
             if (viewCamera == null) viewCamera = Camera.main;
-            viewTemplate.gameObject.SetActive(false);
             warning.gameObject.SetActive(false);
         }
 
@@ -72,7 +72,7 @@ namespace AimCombat.Battle
                 HideAll();
                 while (views.Count < parts.Count)
                 {
-                    BossPartView view = Instantiate(viewTemplate, viewTemplate.transform.parent);
+                    BossPartView view = Instantiate(viewTemplate, transform);
                     view.name = "Part_" + views.Count;
                     views.Add(view);
                 }
