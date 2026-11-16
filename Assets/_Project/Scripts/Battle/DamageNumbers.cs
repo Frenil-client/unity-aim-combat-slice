@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AimCombat.Core.Combat;
 using AimCombat.Data;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,7 @@ namespace AimCombat.Battle
     {
         private sealed class Number
         {
-            public Text text;
+            public TMP_Text text;
             public RectTransform rect;
             public Vector3 world;
             public Vector2 jitter;
@@ -39,7 +40,7 @@ namespace AimCombat.Battle
 
         [SerializeField] private Camera viewCamera;
         [Tooltip("글자 원본. 실행하면 같은 설정으로 여러 개를 만들어 돌려 쓴다.")]
-        [SerializeField] private Text template;
+        [SerializeField] private TMP_Text template;
         [SerializeField] private int poolSize = 48;
 
         [Header("움직임")]
@@ -79,7 +80,7 @@ namespace AimCombat.Battle
             template.gameObject.SetActive(false);
             for (int i = 0; i < poolSize; i++)
             {
-                Text text = Instantiate(template, transform);
+                TMP_Text text = Instantiate(template, transform);
                 text.name = "Number_" + i;
                 pool.Add(new Number { text = text, rect = text.rectTransform });
             }

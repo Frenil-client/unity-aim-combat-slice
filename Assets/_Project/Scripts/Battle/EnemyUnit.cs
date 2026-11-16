@@ -52,7 +52,8 @@ namespace AimCombat.Battle
 
         [Header("표시")]
         [SerializeField] private Renderer[] renderers;
-        [SerializeField] private Transform healthFill;
+        [Tooltip("머리 위 체력 막대(월드 공간 캔버스의 Filled 이미지).")]
+        [SerializeField] private UnityEngine.UI.Image healthFill;
         [Tooltip("기본 번쩍임이 사라지는 시간. 타격감 프리셋이 있으면 무기별 값으로 바뀐다.")]
         [SerializeField] private float flashDuration = 0.1f;
         [SerializeField] private Color stunColor = new Color(1f, 0.95f, 0.35f);
@@ -70,6 +71,8 @@ namespace AimCombat.Battle
         private Func<AllyUnit> pickTarget;
         private Combatant combatant;
         private BossBrain boss;
+        private Transform healthBar;
+        private Quaternion healthBarRotation;
 
         public EnemyKind Kind => kind;
         public EnemyData Data => data;
@@ -110,6 +113,14 @@ namespace AimCombat.Battle
         /// <summary>노릴 아군을 다시 고른다. 살아 있는 아군이 없으면 null.</summary>
         public AllyUnit PickTarget() => pickTarget?.Invoke();
 
+        /// <summary>현재 모델의 정면(-Z)이 수평 이동 방향을 바라보게 한다. 정지하면 마지막 방향을 유지한다.</summary>
+        public void FaceMovement(Vector3 movement)
+        {
+            movement.y = 0f;
+            if (movement.sqrMagnitude <= 0.00000001f) return;
+            transform.rotation = Quaternion.LookRotation(-movement, Vector3.up);
+        }
+
         /// <summary>대상 아군에게 탄환을 쏜다(SPEC 2절: 쏜 순간의 자세를 기억한다). from 을 주면 그 위치에서 쏜다(보스 팔의 포문).</summary>
         public void FireProjectile(AllyUnit ally, float damage, Transform from = null)
         {
@@ -135,6 +146,11 @@ namespace AimCombat.Battle
 
         private void Awake()
         {
+            if (healthFill != null && healthFill.canvas != null)
+            {
+                healthBar = healthFill.canvas.transform;
+                healthBarRotation = healthBar.rotation;
+            }
             block = new MaterialPropertyBlock();
             baseColors = new Color[renderers.Length];
             for (int i = 0; i < renderers.Length; i++) baseColors[i] = renderers[i].sharedMaterial.GetColor(BaseColorId);
@@ -193,6 +209,7 @@ namespace AimCombat.Battle
                 Vector3 position = transform.position;
                 Vector3 next = Vector3.MoveTowards(new Vector3(position.x, 0f, position.z), goal, data.MoveSpeed * MoveMultiplier * Time.deltaTime);
                 transform.position = new Vector3(next.x, position.y, next.z);
+                FaceMovement(transform.position - position);
                 if ((next - goal).sqrMagnitude > 0.01f) return;
             }
 
@@ -213,6 +230,8 @@ namespace AimCombat.Battle
         // 상태효과 색(기절 > 화상 > 감속)을 깔고 그 위에 피격 번쩍임을 더한다. 보스는 BossBrain 이 예고 색을 더 얹는다.
         private void LateUpdate()
         {
+            // 몸이 회전해도 체력 막대는 기존 화면 방향을 유지한다.
+            if (healthBar != null) healthBar.rotation = healthBarRotation;
             if (IsDead) return;
             if (flash > 0f) flash = flashFade > 0f ? Mathf.Max(0f, flash - Time.deltaTime / flashFade) : 0f;
 
@@ -258,11 +277,7 @@ namespace AimCombat.Battle
         private void RefreshHealthBar()
         {
             if (healthFill == null || combatant == null) return;
-            float ratio = Mathf.Clamp01(FixedConvert.ToFloat(combatant.Health) / FixedConvert.ToFloat(combatant.MaxHealth));
-            Vector3 scale = healthFill.localScale;
-            scale.x = ratio;
-            healthFill.localScale = scale;
-            healthFill.localPosition = new Vector3((ratio - 1f) * 0.5f, 0f, 0f);
+            healthFill.fillAmount = Mathf.Clamp01(FixedConvert.ToFloat(combatant.Health) / FixedConvert.ToFloat(combatant.MaxHealth));
         }
     }
 }

@@ -2,6 +2,7 @@ using AimCombat.Character;
 using AimCombat.Core.Combat;
 using AimCombat.Data;
 using AimCombat.Squad;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.UI;
@@ -27,8 +28,8 @@ namespace AimCombat.Feel
         [SerializeField] private PlayableDirector director;
         [SerializeField] private Image band;
         [SerializeField] private Image portrait;
-        [SerializeField] private Text stageText;
-        [SerializeField] private Text skillText;
+        [SerializeField] private TMP_Text stageText;
+        [SerializeField] private TMP_Text skillText;
         [Tooltip("아군 배치 순서의 대표색(띠 색). 무기 종류와 UI 색을 맞춘다(RESOURCES.md 1.1).")]
         [SerializeField] private Color[] memberColors =
         {

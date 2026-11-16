@@ -12,7 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4a2e6f1b3d5479880a1b2c3d4e5f607, type: 3}
   m_Name: Character_Rapid
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.CharacterData
-  displayName: "연사형"
+  displayName: "\uC5F0\uC0AC\uD615"
+  setName: "\uD654\uB825 \uC9C0\uD718"
+  setSummary: "\uC790\uC2E0\uACFC \uC544\uAD70\uC758 \uACF5\uACA9\uC744 \uC62C\uB9AC\uACE0
+    \uD68C\uBCF5\uD55C\uB2E4."
   skill1: {fileID: 11400000, guid: f4c9d526a7e8f90a5708192a3b4cbdcc, type: 2}
   skill2: {fileID: 11400000, guid: 05dae637b8f90a1b68192a3b4c5dcedd, type: 2}
   burstSkill: {fileID: 11400000, guid: d021e28e171f9194bbf60f5318b47e3a, type: 2}
+  alternateSets:
+  - displayName: "\uC81C\uC555 \uC0AC\uACA9"
+    summary: "\uC624\uB798 \uC3E0\uC218\uB85D \uC801\uC744 \uB290\uB9AC\uAC8C \uD558\uACE0
+      \uBC1B\uB294 \uD53C\uD574\uB97C \uD0A4\uC6B4\uB2E4."
+    skill1: {fileID: 11400000, guid: 4a4aa936e9e79cb4f9a7b6ee247a4619, type: 2}
+    skill2: {fileID: 11400000, guid: 21fb0a04f2df7fe4b87f3145c3e1da7d, type: 2}
+    burstSkill: {fileID: 11400000, guid: a159c19b79279e24986be61ded8ebede, type: 2}

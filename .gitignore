@@ -22,6 +22,9 @@
 # ---- 로컬 전용 에디터 툴 ----
 /Assets/_Project/Builders/
 /Assets/_Project/Builders.meta
+/ArtSource/Models/**/*.py
+/ArtSource/Models/**/*.blend1
+/.codex/
 
 # ---- dotnet (Tests/) ----
 bin/

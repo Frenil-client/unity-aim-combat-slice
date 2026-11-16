@@ -8,6 +8,7 @@ using AimCombat.Core.Random;
 using AimCombat.Data;
 using AimCombat.Input;
 using AimCombat.Weapons;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -82,6 +83,8 @@ namespace AimCombat.Squad
             public Sprite cutIn;
 
             [NonSerialized] public Combatant combatant;
+            /// <summary>고른 스킬 세트의 번호(SPEC 3.2 스킬 세트 선택). 0이 기본 세트다.</summary>
+            [NonSerialized] public int setIndex;
             /// <summary>스킬 1, 2에 든 액티브 발동 블록. 블록마다 쿨다운을 따로 센다.</summary>
             [NonSerialized] public readonly List<ActiveBlock> actives = new List<ActiveBlock>();
             /// <summary>캐릭터의 버스트 스킬. 없으면 null.</summary>
@@ -121,12 +124,12 @@ namespace AimCombat.Squad
         [SerializeField] private CombatInput input;
         [SerializeField] private Member[] members;
         [SerializeField] private int selectedIndex;
-        [Tooltip("조준점의 위치. 모양과 잔탄 표시는 여기에 붙은 CrosshairView 가 그린다(없으면 실행할 때 붙인다).")]
+        [Tooltip("조준점의 위치. 모양과 잔탄 표시는 여기에 붙은 CrosshairView 가 그린다.")]
         [SerializeField] private RectTransform crosshair;
         [Tooltip("궤적 원본. 실행하면 같은 설정으로 여러 개를 만들어 산탄의 탄알마다 하나씩 쓴다.")]
         [SerializeField] private LineRenderer tracer;
         [Tooltip("사격장용 탄약 표시. 전투 씬은 HUD 가 따로 그린다.")]
-        [SerializeField] private Text ammoText;
+        [SerializeField] private TMP_Text ammoText;
         [Tooltip("피해 숫자 표시. 비어 있으면 띄우지 않는다.")]
         [SerializeField] private DamageNumbers damageNumbers;
 
@@ -187,6 +190,7 @@ namespace AimCombat.Squad
         private SkillTriggerHub triggers;
         private static readonly SkillSlot[] SkillSlots = { SkillSlot.Skill1, SkillSlot.Skill2, SkillSlot.Burst };
         private bool wasFullBurst;
+        private bool skillsReady;
         private readonly List<int> burstCandidates = new List<int>();
         private readonly List<int> burstWaiting = new List<int>();
         private float autoBurstTime = -1f;
@@ -242,7 +246,7 @@ namespace AimCombat.Squad
         public CharacterData CharacterOf(int index) => members[index].character;
 
         /// <summary>칸별 스킬(스킬 1, 스킬 2, 버스트). 모든 캐릭터가 같은 세 칸이라 UI 가 같은 모양으로 보여 줄 수 있다. 비어 있으면 null.</summary>
-        public SkillData SkillOf(int index, SkillSlot slot) => members[index].character != null ? members[index].character.SkillOf(slot) : null;
+        public SkillData SkillOf(int index, SkillSlot slot) => members[index].character != null ? members[index].character.SkillOf(slot, members[index].setIndex) : null;
 
         /// <summary>패시브 발동 판정(SPEC 3.2 패시브 트리거).</summary>
         public SkillTriggerHub Triggers => triggers;
@@ -260,6 +264,25 @@ namespace AimCombat.Squad
         {
             get => autoBurst;
             set => autoBurst = value;
+        }
+
+        /// <summary>
+        /// 전투가 끝났을 때 분대를 멈춘다. 쏘던 아군도 충전과 재장전을 거두고 모두 엄폐 자세로 돌아가며, 남은 궤적을 지운다.
+        /// 이후로는 쏘지도 스킬을 쓰지도 않는다(이 컴포넌트를 끈다).
+        /// </summary>
+        public void StopForResult()
+        {
+            foreach (Member member in members)
+            {
+                member.weapon.CancelCharge();
+                member.reloading = false;
+                if (!member.IsDown) member.poseView.SetPose(CharacterPose.Cover);
+            }
+            if (tracers != null)
+            {
+                foreach (Tracer t in tracers) if (t.line != null) t.line.enabled = false;
+            }
+            enabled = false;
         }
 
         /// <summary>분대원 전원이 전투 불능이면 true. 쓰러지지 않는 사격장에서는 늘 false.</summary>
@@ -308,26 +331,8 @@ namespace AimCombat.Squad
                     : new Combatant(member.rig.name, Fixed.One, ToFixed(member.weapon.Attack), Fixed.Zero) { Owner = member.rig };
                 allies.Add(member.combatant);
 
-                CharacterData character = member.character;
-                if (character == null) continue;
-                CheckCharacter(character);
-
-                // 스킬 1, 스킬 2, 버스트 순서로 등록한다. 패시브 블록은 발동 판정(triggers)에,
-                // 액티브 블록은 쿨다운과 함께 따로 모으고, 버스트 블록은 TryBurst 가 직접 실행한다.
-                member.burstSkill = character.BurstSkill;
-                member.burstCooldown = member.burstSkill != null ? new SkillCooldown(member.burstSkill.ToCore().Cooldown, startReady: true) : null;
-                foreach (SkillSlot slot in SkillSlots)
-                {
-                    SkillData skill = character.SkillOf(slot);
-                    if (skill == null) continue;
-                    SkillDef def = skill.ToCore();
-                    triggers.Add(member.combatant, def);
-                    foreach (SkillBlockDef block in def.Blocks)
-                    {
-                        if (block.Trigger != SkillTrigger.Active) continue;
-                        member.actives.Add(new ActiveBlock { skill = skill, block = block, cooldown = new SkillCooldown(block.Cooldown) });
-                    }
-                }
+                // 스킬 세트는 지난 판에 고른 것을 기억한다. 스킬 등록은 세트가 정해진 뒤 Start 에서 한다.
+                if (member.character != null) member.setIndex = SquadLoadout.Get(member.character);
             }
 
             for (int i = 0; i < members.Length; i++)
@@ -357,15 +362,57 @@ namespace AimCombat.Squad
             }
 
             crosshairView = crosshair.GetComponent<CrosshairView>();
-            if (crosshairView == null) crosshairView = crosshair.gameObject.AddComponent<CrosshairView>();
 
             RefreshAmmoText();
         }
 
-        // 다른 컴포넌트의 Awake(적 배치 등)가 끝난 뒤에 전투 시작 패시브를 세운다. 실행은 첫 Update 의 Tick 에서 한다.
+        // 고른 스킬 세트를 등록하고 전투 시작 패시브를 세운다. 실행은 첫 Update 의 Tick 에서 한다.
+        // 선택 화면이 떠 있는 동안은 이 컴포넌트가 꺼져 있어, 전투 시작을 누른 뒤에야 여기로 온다(SPEC 3.2 스킬 세트 선택).
         private void Start()
         {
+            SetupSkills();
             triggers.Raise(SkillTrigger.BattleStart);
+        }
+
+        /// <summary>고른 스킬 세트의 번호. 캐릭터가 연결되지 않았으면 0.</summary>
+        public int SkillSetOf(int index) => members[index].setIndex;
+
+        /// <summary>스킬 세트를 고른다. 전투가 시작되기 전(선택 화면)에만 쓴다. 고른 것은 다음 판에도 기억한다.</summary>
+        public void SetSkillSet(int index, int set)
+        {
+            Member member = members[index];
+            if (member.character == null || skillsReady) return;
+            member.setIndex = Mathf.Clamp(set, 0, member.character.SetCount - 1);
+            SquadLoadout.Set(member.character, member.setIndex);
+        }
+
+        // 스킬 1, 스킬 2, 버스트 순서로 등록한다. 패시브 블록은 발동 판정(triggers)에,
+        // 액티브 블록은 쿨다운과 함께 따로 모으고, 버스트 블록은 TryBurst 가 직접 실행한다.
+        private void SetupSkills()
+        {
+            skillsReady = true;
+            foreach (Member member in members)
+            {
+                CharacterData character = member.character;
+                if (character == null) continue;
+                CheckCharacter(character);
+
+                member.setIndex = Mathf.Clamp(member.setIndex, 0, character.SetCount - 1);
+                member.burstSkill = character.SkillOf(SkillSlot.Burst, member.setIndex);
+                member.burstCooldown = member.burstSkill != null ? new SkillCooldown(member.burstSkill.ToCore().Cooldown, startReady: true) : null;
+                foreach (SkillSlot slot in SkillSlots)
+                {
+                    SkillData skill = character.SkillOf(slot, member.setIndex);
+                    if (skill == null) continue;
+                    SkillDef def = skill.ToCore();
+                    triggers.Add(member.combatant, def);
+                    foreach (SkillBlockDef block in def.Blocks)
+                    {
+                        if (block.Trigger != SkillTrigger.Active) continue;
+                        member.actives.Add(new ActiveBlock { skill = skill, block = block, cooldown = new SkillCooldown(block.Cooldown) });
+                    }
+                }
+            }
         }
 
         private void OnDestroy()
@@ -955,6 +1002,7 @@ namespace AimCombat.Squad
 
         private void UpdateCrosshair()
         {
+            if (crosshairView == null) return;
             Member member = members[selectedIndex];
             CharacterWeapon weapon = member.weapon;
 

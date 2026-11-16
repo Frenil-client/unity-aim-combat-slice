@@ -12,7 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4a2e6f1b3d5479880a1b2c3d4e5f607, type: 3}
   m_Name: Character_Charge
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.CharacterData
-  displayName: "차지형"
+  displayName: "\uCC28\uC9C0\uD615"
+  setName: "\uC57D\uC810 \uCD94\uC801"
+  setSummary: "\uC8FC\uAE30 \uBC1C\uB3D9\uACFC \uBC84\uC2A4\uD2B8\uB85C \uC57D\uC810
+    \uAC1C\uBC29\uC744 \uAE54\uACE0 \uC784\uC804 \uC0C1\uD0DC\uB85C \uD130\uB728\uB9B0\uB2E4."
   skill1: {fileID: 11400000, guid: af7480d15293a4b502b3c4d5e6f76877, type: 2}
   skill2: {fileID: 11400000, guid: b08591e263a4b5c613c4d5e6f7087988, type: 2}
   burstSkill: {fileID: 11400000, guid: b50643524aaf6114f8616ef701cc321b, type: 2}
+  alternateSets:
+  - displayName: "\uC77C\uACA9 \uD544\uC0B4"
+    summary: "\uD480 \uCC28\uC9C0\uC640 \uCE58\uBA85 \uBA85\uC911\uC73C\uB85C \uC790\uC2E0\uC744
+      \uAC15\uD654\uD574 \uD55C \uBC1C\uC744 \uD0A4\uC6B4\uB2E4."
+    skill1: {fileID: 11400000, guid: 33152c995b2999240b799cd5a0abeeff, type: 2}
+    skill2: {fileID: 11400000, guid: a0e16e98d486d45479ade5d079900aed, type: 2}
+    burstSkill: {fileID: 11400000, guid: cbb84d0a4a36d064c9b7b7479af67233, type: 2}

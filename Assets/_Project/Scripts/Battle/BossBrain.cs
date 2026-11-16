@@ -117,6 +117,12 @@ namespace AimCombat.Battle
         /// <summary>패턴이 바뀌었다.</summary>
         public event Action<BossBrain, BossPhase> PhaseChanged;
 
+        // 쓰러지면(오브젝트가 꺼지고 지워진다) 바닥에 남는 강타 표시를 거둔다. 표시는 보스 밖에 있어 함께 사라지지 않는다.
+        private void OnDisable()
+        {
+            if (slamMarker != null) slamMarker.gameObject.SetActive(false);
+        }
+
         public void Begin(EnemyUnit owner)
         {
             unit = owner;
@@ -214,7 +220,8 @@ namespace AimCombat.Battle
 
                 case BossPhase.Return:
                 case BossPhase.Broken:
-                    if (MoveTo(home, data.LungeSpeed * 0.35f)) Enter(BossPhase.Idle, data.PatternInterval);
+                    // 뒷걸음질: 아군에게 등을 보이지 않게 이동의 반대쪽을 바라본다.
+                    if (MoveTo(home, data.LungeSpeed * 0.35f, true)) Enter(BossPhase.Idle, data.PatternInterval);
                     break;
 
                 case BossPhase.Stagger:
@@ -326,9 +333,13 @@ namespace AimCombat.Battle
             PhaseChanged?.Invoke(this, phase);
         }
 
-        private bool MoveTo(Vector3 goal, float speed)
+        // backward 면 이동의 반대쪽을 바라본다(뒷걸음질).
+        private bool MoveTo(Vector3 goal, float speed, bool backward = false)
         {
+            Vector3 previous = transform.position;
             transform.position = Vector3.MoveTowards(transform.position, goal, speed * Time.deltaTime);
+            Vector3 movement = transform.position - previous;
+            unit.FaceMovement(backward ? -movement : movement);
             return (transform.position - goal).sqrMagnitude < 0.0004f;
         }
 
@@ -347,7 +358,7 @@ namespace AimCombat.Battle
             WarningColor = telegraph ? new Color(1f, 0.1f, 0.1f, 0.25f + 0.35f * pulse) : Color.clear;
 
             float tilt = Phase == BossPhase.Stagger ? Mathf.Sin(Time.time * 18f) * 8f : 0f;
-            transform.rotation = Quaternion.Euler(0f, 0f, tilt);
+            transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, tilt);
         }
     }
 }

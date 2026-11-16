@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Charge_B1
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "\uC815\uC870\uC900"
+  description: "\uD480 \uCC28\uC9C0 \uACF5\uACA9\uC774 \uBA85\uC911\uD558\uBA74 \uC870\uC900
+    \uC548\uC815\uC744 \uD55C \uC911\uCCA9 \uC313\uB294\uB2E4(\uCE58\uBA85 \uD56D\uBAA9
+    25%, \uCD5C\uB300 3\uC911\uCCA9, 8\uCD08). \uC77C\uBC18 \uACF5\uACA9\uC774 \uCE58\uBA85\uC73C\uB85C
+    \uBA85\uC911\uD558\uBA74 \uB9DE\uC740 \uC801\uC5D0\uAC8C \uCD94\uAC00 \uD53C\uD574\uB97C
+    \uC900\uB2E4."
+  slot: 0
+  cooldown: 20
+  burstStage: 1
+  nextStageWindow: 10
+  blocks:
+  - trigger: 12
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: f1b9e2bda460ca64e948dae5328bbb12, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+  - trigger: 10
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 1
+      target: 7
+      count: 1
+      coefficient: 1
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0

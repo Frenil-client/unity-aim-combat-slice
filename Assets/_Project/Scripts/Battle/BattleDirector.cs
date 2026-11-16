@@ -41,6 +41,8 @@ namespace AimCombat.Battle
         [SerializeField] private EnemyUnit bossTemplate;
         [SerializeField] private Vector3 bossSpawn = new Vector3(0f, 0f, 30f);
         [SerializeField] private float timeLimit = 150f;
+        [Tooltip("스킬 세트 선택 화면. 씬에서는 꺼 두고 실행할 때 이 감독이 켠다. 비어 있으면 바로 전투를 시작한다.")]
+        [SerializeField] private LoadoutSelectScreen loadoutSelect;
         [Tooltip("웨이브 사이 쉬는 시간(초).")]
         [SerializeField] private float waveBreak = 2.5f;
 
@@ -56,6 +58,7 @@ namespace AimCombat.Battle
         private float nextSpawnTime;
         private float waveStartTime;
         private float startTime;
+        private bool started;
         private bool bossSpawned;
 
         public BattleState State { get; private set; } = BattleState.Playing;
@@ -67,15 +70,24 @@ namespace AimCombat.Battle
 
         /// <summary>나와 있는 보스. 나오기 전이거나 쓰러졌으면 null 이거나 IsDead.</summary>
         public EnemyUnit Boss { get; private set; }
-        public float TimeLeft => Mathf.Max(0f, timeLimit - (Time.time - startTime));
+        /// <summary>남은 제한 시간. 전투가 시작되기 전(스킬 세트 선택 중)에는 제한 시간 전체다.</summary>
+        public float TimeLeft => started ? Mathf.Max(0f, timeLimit - (Time.time - startTime)) : timeLimit;
         public int EnemiesLeft => pending.Count + EnemyUnit.Alive.Count;
 
         /// <summary>다음 웨이브까지 쉬는 중이면 true.</summary>
         public bool InBreak => Time.time < waveStartTime;
 
+        // 스킬 세트 선택 화면은 씬에서 꺼 두고(편집 중 전투 화면을 가리지 않게) 실행할 때 켠다.
+        // 켜는 순간 화면의 Awake 가 돌아 분대와 이 감독을 끄므로, 둘의 Start(전투 시작)는 선택이 끝난 뒤에 불린다.
+        private void Awake()
+        {
+            if (loadoutSelect != null) loadoutSelect.gameObject.SetActive(true);
+        }
+
         private void Start()
         {
             startTime = Time.time;
+            started = true;
             StartNextWave(0.5f);
         }
 
@@ -186,11 +198,12 @@ namespace AimCombat.Battle
         private void End(BattleState result)
         {
             State = result;
-            // 남은 적은 멈춘다. 결과 화면 뒤에서 계속 공격하지 않게 한다.
+            // 남은 적과 분대를 멈춘다. 결과 화면 뒤에서 계속 쏘거나 스킬을 쓰지 않게 한다.
             foreach (EnemyUnit enemy in spawned)
             {
                 if (enemy != null) enemy.enabled = false;
             }
+            if (squad != null) squad.StopForResult();
         }
     }
 }

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_Boss
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.EnemyData
   displayName: "\uC911\uC7A5 \uAE30\uB3D9\uCCB4"
-  maxHealth: 10000
+  maxHealth: 20000
   defense: 15
   attackDamage: 18
   attackInterval: 1

@@ -6,7 +6,7 @@ namespace AimCombat.Feel
     /// <summary>
     /// 명중 불꽃, 탄피, 총구 화염(SPEC 4절). 오브젝트를 새로 만들지 않는다.
     /// - 불꽃과 탄피는 파티클 시스템 하나씩에 Emit 으로 한 알씩 넣는다. 시스템은 빌더가 씬에 만들어 둔다(머티리얼이 빌드에 포함되게).
-    /// - 총구 화염은 아군마다 총구에 붙인 스프라이트 하나를 켰다 끈다. 그림은 실행할 때 절차적으로 만든다.
+    /// - 총구 화염은 아군마다 총구에 붙인 스프라이트 하나를 켰다 끈다. 그림은 스프라이트 에셋(임시 그림은 빌더가 만든다)이다.
     /// 시간은 게임 시간이라 히트스톱 동안 함께 멈춘다(멈춘 장면에 불꽃이 걸려 있는 편이 손맛이 산다).
     /// </summary>
     public sealed class HitEffects : MonoBehaviour
@@ -28,8 +28,10 @@ namespace AimCombat.Feel
         [Tooltip("총구 화염 크기 1일 때의 지름(유닛).")]
         [SerializeField] private float muzzleBaseSize = 0.55f;
 
+        [Tooltip("총구 화염 그림.")]
+        [SerializeField] private Sprite flashSprite;
+
         private readonly List<MuzzleFlash> flashes = new List<MuzzleFlash>();
-        private static Sprite flashSprite;
 
         public ParticleSystem Sparks { get => sparks; set => sparks = value; }
         public ParticleSystem Shells { get => shells; set => shells = value; }
@@ -40,7 +42,7 @@ namespace AimCombat.Feel
             var go = new GameObject("MuzzleFlash");
             go.transform.SetParent(muzzle, false);
             var renderer = go.AddComponent<SpriteRenderer>();
-            renderer.sprite = GetFlashSprite();
+            renderer.sprite = flashSprite;
             if (spriteMaterial != null) renderer.sharedMaterial = spriteMaterial;
             renderer.sortingOrder = muzzleSortingOrder;
             renderer.color = muzzleColor;
@@ -126,33 +128,5 @@ namespace AimCombat.Feel
             }
         }
 
-        // 가운데가 밝고 네 갈래로 뻗는 별 모양. 텍스처 파일 없이 실행할 때 한 번 만든다.
-        private static Sprite GetFlashSprite()
-        {
-            if (flashSprite != null) return flashSprite;
-            const int size = 64;
-            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, name = "MuzzleFlash" };
-            var pixels = new Color32[size * size];
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float u = (x + 0.5f) / size * 2f - 1f;
-                    float v = (y + 0.5f) / size * 2f - 1f;
-                    float r = Mathf.Sqrt(u * u + v * v);
-                    float glow = Mathf.Clamp01(1f - r);
-                    glow *= glow;
-                    float spikes = Mathf.Clamp01(1f - Mathf.Abs(u) * 9f) * Mathf.Clamp01(1f - Mathf.Abs(v)) +
-                                   Mathf.Clamp01(1f - Mathf.Abs(v) * 9f) * Mathf.Clamp01(1f - Mathf.Abs(u));
-                    float a = Mathf.Clamp01(glow + spikes * 0.8f);
-                    byte b = (byte)(a * 255f);
-                    pixels[y * size + x] = new Color32(255, 255, 255, b);
-                }
-            }
-            texture.SetPixels32(pixels);
-            texture.Apply();
-            flashSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-            return flashSprite;
-        }
     }
 }

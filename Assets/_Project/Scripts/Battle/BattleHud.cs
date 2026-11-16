@@ -4,6 +4,7 @@ using AimCombat.Core;
 using AimCombat.Core.Combat;
 using AimCombat.Data;
 using AimCombat.Squad;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,13 +27,16 @@ namespace AimCombat.Battle
 
         [SerializeField] private SquadController squad;
         [SerializeField] private BattleDirector director;
-        [SerializeField] private Text waveText;
-        [SerializeField] private Text resultText;
+        [SerializeField] private TMP_Text waveText;
+        [Tooltip("승패 문구. 전투 HUD 묶음 밖에 둔다(끝나면 묶음은 숨기고 이것만 남는다).")]
+        [SerializeField] private TMP_Text resultText;
+        [Tooltip("전투 HUD 묶음. 전투가 끝나면 숨긴다.")]
+        [SerializeField] private CanvasGroup hudGroup;
 
         [Header("아군 패널")]
         [SerializeField] private Button[] allyButtons;
-        [SerializeField] private Text[] allyTexts;
-        [SerializeField] private Text[] allyStatusTexts;
+        [SerializeField] private TMP_Text[] allyTexts;
+        [SerializeField] private TMP_Text[] allyStatusTexts;
         [SerializeField] private Image[] allyHealthFills;
         [SerializeField] private Image[] allyCoverFills;
         [SerializeField] private Image[] allyFrames;
@@ -41,34 +45,34 @@ namespace AimCombat.Battle
 
         [Header("스킬 줄")]
         [SerializeField] private GameObject[] skillRows;
-        [SerializeField] private Text[] skillTexts;
+        [SerializeField] private TMP_Text[] skillTexts;
         [SerializeField] private Image[] skillFills;
 
         [Header("버스트")]
-        [SerializeField] private Text burstText;
+        [SerializeField] private TMP_Text burstText;
         [SerializeField] private Image burstFrame;
         [SerializeField] private Image burstGaugeFill;
         [Tooltip("후보 버튼. 위에서부터 1, 2, 3 ... 번째 후보(숫자 키와 같다).")]
         [SerializeField] private Button[] candidateButtons;
-        [SerializeField] private Text[] candidateTexts;
+        [SerializeField] private TMP_Text[] candidateTexts;
         [SerializeField] private Image[] candidateFaces;
 
         [Header("자동 전환")]
         [SerializeField] private Button autoBurstButton;
-        [SerializeField] private Text autoBurstText;
+        [SerializeField] private TMP_Text autoBurstText;
         [SerializeField] private Button autoBattleButton;
-        [SerializeField] private Text autoBattleText;
+        [SerializeField] private TMP_Text autoBattleText;
 
         [Header("보스")]
         [SerializeField] private GameObject bossPanel;
-        [SerializeField] private Text bossText;
+        [SerializeField] private TMP_Text bossText;
         [SerializeField] private Image bossHealthFill;
         [SerializeField] private Image bossGaugeFill;
-        [SerializeField] private Text bossWarningText;
+        [SerializeField] private TMP_Text bossWarningText;
         [SerializeField] private Image bossCancelFill;
 
         [Header("알림")]
-        [SerializeField] private Text feedText;
+        [SerializeField] private TMP_Text feedText;
         [SerializeField] private float feedDuration = 1.6f;
 
         [Header("색")]
@@ -127,8 +131,16 @@ namespace AimCombat.Battle
 
             if (feedText != null && feedText.gameObject.activeSelf && Time.time >= feedEndTime) feedText.gameObject.SetActive(false);
 
+            // 끝나면 결과 문구만 남기고 전투 HUD 묶음(조준점, 피해 숫자, 알림, 아군 패널, 버스트, 보스 표시)을 숨긴다.
+            // 결과 문구는 묶음 밖에 있다.
             if (director.State != BattleState.Playing && !resultText.gameObject.activeSelf)
             {
+                if (hudGroup != null)
+                {
+                    hudGroup.alpha = 0f;
+                    hudGroup.blocksRaycasts = false;
+                    hudGroup.interactable = false;
+                }
                 resultText.gameObject.SetActive(true);
                 resultText.text = (director.State == BattleState.Victory ? "승리" : "패배") + "\n<size=36>누르거나 R 키로 다시 시작</size>";
             }
@@ -144,15 +156,15 @@ namespace AimCombat.Battle
             string state = unit.IsDown ? "전투 불능" : squad.IsReloading(i) ? "재장전" : weapon.Ammo + " / " + weapon.MagazineSize;
             allyTexts[i].text = key + "  " + squad.NameOf(i) + stage + "\n" + state;
 
-            allyHealthFills[i].rectTransform.localScale = new Vector3(unit.Health / unit.MaxHealth, 1f, 1f);
+            allyHealthFills[i].fillAmount = unit.Health / unit.MaxHealth;
             CoverObject cover = unit.Cover;
             float coverRatio = cover != null ? cover.Durability / cover.MaxDurability : 0f;
-            allyCoverFills[i].rectTransform.localScale = new Vector3(coverRatio, 1f, 1f);
+            allyCoverFills[i].fillAmount = coverRatio;
             allyFrames[i].color = unit.IsDown ? downColor : i == squad.SelectedIndex ? selectedColor : normalColor;
             if (i < allyFaces.Length && allyFaces[i].enabled) allyFaces[i].color = unit.IsDown ? new Color(0.35f, 0.35f, 0.4f, 1f) : Color.white;
 
-            if (i < allyStatusTexts.Length) allyStatusTexts[i].text = Describe(squad.CombatantOf(i).Statuses);
             if (i < skillTexts.Length) RefreshSkill(i, unit.IsDown);
+            if (i < allyStatusTexts.Length) allyStatusTexts[i].text = Describe(squad.CombatantOf(i).Statuses);
         }
 
         // 스킬 줄: 일반 스킬 이름과 쿨다운(막대), 오른쪽에 버스트 쿨다운.
@@ -161,11 +173,12 @@ namespace AimCombat.Battle
             SkillData skill = squad.ActiveSkillOf(i);
             SkillCooldown cooldown = squad.CooldownOf(i);
             SkillCooldown burstCooldown = squad.BurstCooldownOf(i);
-            if (skill == null && burstCooldown == null)
-            {
-                skillRows[i].SetActive(false);
-                return;
-            }
+            // 스킬 줄은 쿨다운형 액티브 스킬이 있는 세트에서만 보인다(버스트 쿨다운은 그 옆에 덧붙인다).
+            // 액티브 스킬이 없는 세트는 줄을 숨긴다. 아군 열은 레이아웃으로 쌓여 있어 버프 줄이 저절로 그 자리로 내려온다.
+            // 스킬은 전투 시작(스킬 세트 선택 뒤)에 등록되므로 처음에는 비어 있다가 나중에 생긴다. 숨겼다가도 다시 켠다.
+            bool hasRow = skill != null;
+            if (skillRows[i].activeSelf != hasRow) skillRows[i].SetActive(hasRow);
+            if (!hasRow) return;
 
             string text = "";
             float progress = 0f;
@@ -183,7 +196,7 @@ namespace AimCombat.Battle
             }
 
             skillTexts[i].text = text;
-            skillFills[i].rectTransform.localScale = new Vector3(progress, 1f, 1f);
+            skillFills[i].fillAmount = progress;
             skillFills[i].color = ready ? skillReadyColor : new Color(0.3f, 0.55f, 0.9f, 0.6f);
         }
 
@@ -222,7 +235,7 @@ namespace AimCombat.Battle
 
             burstText.text = text;
             if (burstFrame != null) burstFrame.color = color;
-            if (burstGaugeFill != null) burstGaugeFill.rectTransform.localScale = new Vector3(Mathf.Clamp01(gauge), 1f, 1f);
+            if (burstGaugeFill != null) burstGaugeFill.fillAmount = Mathf.Clamp01(gauge);
 
             // 후보(번호, 누를 수 있음) 뒤에 쿨다운 중인 아군(번호 없음, 어둡게, 남은 시간)을 이어 놓는다(SPEC 3.2).
             for (int c = 0; c < candidateButtons.Length; c++)
@@ -261,7 +274,7 @@ namespace AimCombat.Battle
         }
 
 
-        private void SetToggle(Button button, Text label, bool on, string name, string key)
+        private void SetToggle(Button button, TMP_Text label, bool on, string name, string key)
         {
             if (button == null) return;
             label.text = name + " " + (on ? "ON" : "OFF") + "\n<size=22>(" + key + ")</size>";
@@ -280,9 +293,9 @@ namespace AimCombat.Battle
             Combatant c = boss.Combatant;
             float health = FixedConvert.ToFloat(c.Health);
             bossText.text = boss.Data.DisplayName + "  " + Mathf.CeilToInt(health) + "    " + Describe(c.Statuses);
-            bossHealthFill.rectTransform.localScale = new Vector3(health / FixedConvert.ToFloat(c.MaxHealth), 1f, 1f);
+            bossHealthFill.fillAmount = health / FixedConvert.ToFloat(c.MaxHealth);
             float gauge = c.ControlGaugeMax.raw > 0 ? c.ControlGauge.raw / (float)c.ControlGaugeMax.raw : 0f;
-            bossGaugeFill.rectTransform.localScale = new Vector3(c.IsControlled ? 0f : gauge, 1f, 1f);
+            bossGaugeFill.fillAmount = c.IsControlled ? 0f : gauge;
 
             BossBrain brain = boss.Boss;
             string warning = "";
@@ -308,7 +321,7 @@ namespace AimCombat.Battle
             }
             bossWarningText.text = warning;
             bossCancelFill.transform.parent.gameObject.SetActive(telegraph);
-            if (telegraph) bossCancelFill.rectTransform.localScale = new Vector3(brain.CancelProgress, 1f, 1f);
+            if (telegraph) bossCancelFill.fillAmount = brain.CancelProgress;
         }
 
         private void OnEnable() => BossBrain.PartDestroyed += OnBossPartDestroyed;

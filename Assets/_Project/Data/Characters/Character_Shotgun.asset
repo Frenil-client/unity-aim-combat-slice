@@ -12,7 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4a2e6f1b3d5479880a1b2c3d4e5f607, type: 3}
   m_Name: Character_Shotgun
   m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.CharacterData
-  displayName: "산탄형"
+  displayName: "\uC0B0\uD0C4\uD615"
+  setName: "\uADFC\uC811 \uC81C\uC555"
+  setSummary: "\uAC00\uAE4C\uC6B4 \uC801\uC744 \uD0DC\uC6B0\uACE0 \uAE30\uC808\uC2DC\uD0A4\uBA70
+    \uC2A4\uC2A4\uB85C \uBC84\uD2F4\uB2E4."
   skill1: {fileID: 11400000, guid: 27fc0859da1b2c3d8a3b4c5d6e7fe0ff, type: 2}
   skill2: {fileID: 11400000, guid: 380d196aeb2c3d4e9b4c5d6e7f80f110, type: 2}
   burstSkill: {fileID: 11400000, guid: 5be9333f947f4cd4f8741124d73064f0, type: 2}
+  alternateSets:
+  - displayName: "\uC804\uC120 \uC720\uC9C0"
+    summary: "\uC544\uAD70\uC744 \uD68C\uBCF5\uD558\uACE0 \uD480 \uBC84\uC2A4\uD2B8\uC5D0
+      \uB9DE\uCDB0 \uBD84\uB300\uB97C \uAC15\uD654\uD55C\uB2E4."
+    skill1: {fileID: 11400000, guid: a3dec8841fd787b41a54637d404c2965, type: 2}
+    skill2: {fileID: 11400000, guid: 4328a71e4184ae5419f3c726f4940ca3, type: 2}
+    burstSkill: {fileID: 11400000, guid: 001469fce2c6a1d4c86f7e08554f8679, type: 2}

@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6eac43b598cf248b07e1dca58d77c3, type: 3}
+  m_Name: Skill_Rapid_BBurst
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Data.SkillData
+  displayName: "\uC9D1\uC911 \uD3EC\uD654"
+  description: "\uBC84\uC2A4\uD2B8 II. \uC801 \uC804\uCCB4\uC5D0 \uC7A5\uAC11 \uADE0\uC5F4\uC744
+    \uB450 \uC911\uCCA9 \uC313\uACE0 \uBB34\uC791\uC704 \uC801 4\uAE30\uC5D0 \uD53C\uD574\uB97C
+    \uC900 \uB4A4 \uD0C4\uCC3D\uC744 \uC989\uC2DC \uCC44\uC6B4\uB2E4."
+  slot: 2
+  cooldown: 20
+  burstStage: 2
+  nextStageWindow: 10
+  blocks:
+  - trigger: 1
+    cooldown: 0
+    triggerCount: 1
+    interval: 0
+    altInterval: 0
+    altIntervalStatus: {fileID: 0}
+    triggerStatus: {fileID: 0}
+    healthThreshold: 0.5
+    chance: 1
+    requireSelfStatus: {fileID: 0}
+    forbidSelfStatus: {fileID: 0}
+    burstState: 0
+    effects:
+    - kind: 0
+      target: 5
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 3870080c558c68f41b1c7edcdf60fc7b, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 0
+      target: 5
+      count: 1
+      coefficient: 0
+      status: {fileID: 11400000, guid: 3870080c558c68f41b1c7edcdf60fc7b, type: 2}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 1
+      target: 6
+      count: 4
+      coefficient: 2
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0
+    - kind: 3
+      target: 0
+      count: 1
+      coefficient: 0
+      status: {fileID: 0}
+      targetStatus: {fileID: 0}
+      coreHit: 0
