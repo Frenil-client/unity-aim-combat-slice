@@ -69,9 +69,17 @@ namespace AimCombat.Feel
             squad.SkillUsed += OnSkillUsed;
         }
 
-        private void OnEnable() => BossBrain.SlamLanded += OnSlam;
+        private void OnEnable()
+        {
+            BossBrain.SlamLanded += OnSlam;
+            BossBrain.PartDestroyed += OnBossPartDestroyed;
+        }
 
-        private void OnDisable() => BossBrain.SlamLanded -= OnSlam;
+        private void OnDisable()
+        {
+            BossBrain.SlamLanded -= OnSlam;
+            BossBrain.PartDestroyed -= OnBossPartDestroyed;
+        }
 
         private void Update()
         {
@@ -162,6 +170,15 @@ namespace AimCombat.Feel
             if (!feelEnabled) return;
             if (shake != null) shake.Add(settings.slamShake);
             if (feelAudio != null) feelAudio.Play(FeelSound.Slam, 0.9f);
+        }
+
+        // 보스의 팔이 부서졌다: 크게 흔들고 잠깐 멈춘다. 값은 강타와 풀 버스트의 것을 함께 쓴다(따로 조정할 필요가 생기면 설정에 항목을 더한다).
+        private void OnBossPartDestroyed(BossBrain boss, BossPart part)
+        {
+            if (!feelEnabled) return;
+            if (shake != null) shake.Add(settings.slamShake);
+            if (hitStop != null) hitStop.Request(settings.fullBurstHitStop, 0.05f);
+            if (feelAudio != null) feelAudio.Play(FeelSound.Kill, 1f);
         }
 
         private void OnAllyHurt(AllyUnit unit, float damage)

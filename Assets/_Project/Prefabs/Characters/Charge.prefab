@@ -410,7 +410,7 @@ MonoBehaviour:
   chargeBonus: 1.5
   pierceCount: 3
   pelletCount: 8
-  pelletSpread: 5
+  pelletSpread: 2.5
 --- !u!114 &8192617971223433241
 MonoBehaviour:
   m_ObjectHideFlags: 0

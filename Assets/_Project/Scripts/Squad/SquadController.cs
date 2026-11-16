@@ -121,9 +121,8 @@ namespace AimCombat.Squad
         [SerializeField] private CombatInput input;
         [SerializeField] private Member[] members;
         [SerializeField] private int selectedIndex;
+        [Tooltip("조준점의 위치. 모양과 잔탄 표시는 여기에 붙은 CrosshairView 가 그린다(없으면 실행할 때 붙인다).")]
         [SerializeField] private RectTransform crosshair;
-        [SerializeField] private RectTransform chargeBar;
-        [SerializeField] private RectTransform chargeFill;
         [Tooltip("궤적 원본. 실행하면 같은 설정으로 여러 개를 만들어 산탄의 탄알마다 하나씩 쓴다.")]
         [SerializeField] private LineRenderer tracer;
         [Tooltip("사격장용 탄약 표시. 전투 씬은 HUD 가 따로 그린다.")]
@@ -181,8 +180,7 @@ namespace AimCombat.Squad
         private Tracer[] tracers;
         private int nextTracer;
         private float cameraOffsetX;
-        private RectTransform[] crosshairArms;
-        private static readonly Vector2[] ArmDirections = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+        private CrosshairView crosshairView;
         private float rangeOriginZ;
         private DeterministicRandom critRandom;
         private BurstChain burst;
@@ -358,9 +356,8 @@ namespace AimCombat.Squad
                 if (member.unit != null) member.unit.Downed += OnAllyDowned;
             }
 
-            crosshairArms = new RectTransform[4];
-            string[] armNames = { "Top", "Bottom", "Left", "Right" };
-            for (int i = 0; i < 4; i++) crosshairArms[i] = (RectTransform)crosshair.Find(armNames[i]);
+            crosshairView = crosshair.GetComponent<CrosshairView>();
+            if (crosshairView == null) crosshairView = crosshair.gameObject.AddComponent<CrosshairView>();
 
             RefreshAmmoText();
         }
@@ -882,6 +879,11 @@ namespace AimCombat.Squad
 
             Fixed damage = DamageFormula.Compute(hit);
             if (victim != null) victim.ApplyDamage(damage, DamageSource.Shot, attacker, hit.Critical, hit.WeakPoint);
+
+            // 보스의 부위(팔, 저지 표적)에 맞았으면 같은 피해로 부위 체력과 저지 게이지도 깎는다(SPEC 3.4).
+            BossPart part = collider.GetComponent<BossPart>();
+            if (part != null && victim != null && victim.IsAlive) part.TakeShot(FromFixed(damage));
+
             target.OnShot(weapon.ChargeMultiplierAt(charge01), point);
             if (damageNumbers != null)
             {
@@ -953,16 +955,24 @@ namespace AimCombat.Squad
 
         private void UpdateCrosshair()
         {
-            CharacterWeapon weapon = members[selectedIndex].weapon;
+            Member member = members[selectedIndex];
+            CharacterWeapon weapon = member.weapon;
 
-            // 퍼짐만큼 조준점 팔을 벌린다. 연사형은 쏠수록 벌어지고, 산탄형은 원뿔 크기만큼 늘 벌어져 있다.
-            float gap = crosshairGap + weapon.SpreadDegrees * crosshairPixelsPerDegree;
-            for (int i = 0; i < 4; i++) crosshairArms[i].anchoredPosition = ArmDirections[i] * gap;
-
-            // 차지형 충전 막대는 충전 중에만 보인다.
-            bool charging = weapon.IsCharging;
-            if (chargeBar.gameObject.activeSelf != charging) chargeBar.gameObject.SetActive(charging);
-            if (charging) chargeFill.localScale = new Vector3(weapon.Charge01, 1f, 1f);
+            // 조준점은 조작 중인 아군의 무기 종류에 맞는 모양으로 그린다(SPEC 2절 조준점 표시).
+            // 퍼짐만큼 커진다: 연사형은 쏠수록 팔이 벌어지고, 산탄형은 원뿔 크기만큼의 원이다. 잔탄과 재장전 진행을 옆에 띄운다.
+            float stage = weapon.StageDuration;
+            var state = new CrosshairState
+            {
+                Kind = weapon.Kind,
+                SpreadRadius = crosshairGap + weapon.SpreadDegrees * crosshairPixelsPerDegree,
+                Charging = weapon.IsCharging,
+                Charge01 = weapon.Charge01,
+                Ammo = weapon.Ammo,
+                MagazineSize = weapon.MagazineSize,
+                Reloading = member.reloading,
+                Reload01 = member.reloading && stage > 0f ? Mathf.Clamp01(1f - (member.reloadEndTime - Time.time) / stage) : 0f,
+            };
+            crosshairView.Show(state);
         }
 
         private void RefreshAmmoText()

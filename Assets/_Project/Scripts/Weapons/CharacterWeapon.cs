@@ -80,7 +80,7 @@ namespace AimCombat.Weapons
         [Header("산탄형: 다발")]
         [SerializeField] private int pelletCount = 8;
         [Tooltip("탄알이 퍼지는 원뿔의 반각(도). 각도가 같으니 멀수록 넓게 흩어진다.")]
-        [SerializeField] private float pelletSpread = 5f;
+        [SerializeField] private float pelletSpread = 2.5f;
 
         private CharacterAimRig rig;
         private float nextFireTime;

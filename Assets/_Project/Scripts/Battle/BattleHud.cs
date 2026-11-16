@@ -11,7 +11,8 @@ namespace AimCombat.Battle
 {
     /// <summary>
     /// 임시 전투 HUD. 웨이브와 남은 시간, 아군별 패널(이름, 버스트 단계, 체력, 엄폐물, 탄약, 버프), 스킬 줄(일반 스킬과 버스트 쿨다운),
-    /// 버스트 패널과 후보 버튼, 자동 버스트와 자동 전투 전환 버튼, 보스 패널(체력, 저항 게이지, 상태효과, 강타 예고), 스킬 알림, 결과 표시.
+    /// 버스트 패널과 후보 버튼, 자동 버스트와 자동 전투 전환 버튼, 보스 패널(체력, 저항 게이지, 상태효과, 강타 예고와 저지 진행), 스킬과 부위 파괴 알림, 결과 표시.
+    /// 보스의 부위 체력과 저지 표적은 BossPartHud 가 보스 위치에 띄운다.
     /// - 아군 패널은 버튼이라 누르면 그 아군을 조작한다(Z, X, C, V, B 키와 같다).
     /// - 스킬 줄은 보여주기만 한다. 일반 스킬은 각자 쿨다운이 차는 대로 쓴다.
     /// - 버스트 패널은 게이지, 지금 단계, 창의 남은 시간, 풀 버스트를 보여준다. 단계가 열리면 그 단계에서 쓸 수 있는 아군이
@@ -267,7 +268,7 @@ namespace AimCombat.Battle
             ((Image)button.targetGraphic).color = on ? toggleOnColor : normalColor;
         }
 
-        // 보스가 나와 있는 동안만 보인다. 강화 예고 중에는 경고와 취소 진행 막대를 띄운다.
+        // 보스가 나와 있는 동안만 보인다. 강타 예고 중에는 경고와 저지 진행 막대(표적들이 깎인 비율)를 띄운다.
         private void RefreshBoss()
         {
             if (bossPanel == null) return;
@@ -292,7 +293,7 @@ namespace AimCombat.Battle
                 {
                     case BossPhase.SlamTelegraph:
                         string target = brain.SlamTarget != null ? brain.SlamTarget.name : "";
-                        warning = "강타 예고: " + target + "  약점을 쏴서 막아라";
+                        warning = "강타 예고: " + target + "  표적 " + brain.MarksLeft + "개를 부숴라";
                         break;
                     case BossPhase.Stagger:
                         warning = "강타 저지";
@@ -308,6 +309,19 @@ namespace AimCombat.Battle
             bossWarningText.text = warning;
             bossCancelFill.transform.parent.gameObject.SetActive(telegraph);
             if (telegraph) bossCancelFill.rectTransform.localScale = new Vector3(brain.CancelProgress, 1f, 1f);
+        }
+
+        private void OnEnable() => BossBrain.PartDestroyed += OnBossPartDestroyed;
+
+        private void OnDisable() => BossBrain.PartDestroyed -= OnBossPartDestroyed;
+
+        // 보스의 팔이 부서지면 알림으로 띄운다(SPEC 3.4).
+        private void OnBossPartDestroyed(BossBrain boss, BossPart part)
+        {
+            if (feedText == null) return;
+            feedText.text = "<color=#FF7060>" + part.DisplayName + " 파괴</color>";
+            feedText.gameObject.SetActive(true);
+            feedEndTime = Time.time + feedDuration;
         }
 
         private void OnSkillUsed(int index, SkillData skill)

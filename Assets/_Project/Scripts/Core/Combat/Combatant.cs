@@ -146,12 +146,19 @@ namespace AimCombat.Core.Combat
             return amount;
         }
 
-        // 게이지형 대상에게 행동 불가가 들어왔다. 그로기 중에는 깎지 않는다. 깎은 양을 돌려준다.
-        internal Fixed AbsorbControl(StatusDef def)
-        {
-            if (IsControlled || ControlGaugeMax <= Fixed.Zero) return Fixed.Zero;
+        // 게이지형 대상에게 행동 불가가 들어왔다. 효과의 값만큼 게이지를 깎는다.
+        internal Fixed AbsorbControl(StatusDef def) => CutControlGauge(def.Value);
 
-            Fixed cut = def.Value > ControlGauge ? ControlGauge : def.Value;
+        /// <summary>
+        /// 저항 게이지를 깎는다(행동 불가 효과, 부위 파괴). 그로기 중에는 깎지 않는다. 다 깎이면 그로기에 빠지고 게이지가 다시 찬다.
+        /// 깎은 양을 돌려준다. 게이지형이 아닌 대상에게는 아무 일도 없다.
+        /// </summary>
+        public Fixed CutControlGauge(Fixed amount)
+        {
+            if (ControlResponse != ControlResponse.Gauge || !IsAlive || IsControlled) return Fixed.Zero;
+            if (ControlGaugeMax <= Fixed.Zero || amount <= Fixed.Zero) return Fixed.Zero;
+
+            Fixed cut = amount > ControlGauge ? ControlGauge : amount;
             ControlGauge = ControlGauge - cut;
             if (ControlGauge <= Fixed.Zero)
             {

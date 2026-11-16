@@ -13,7 +13,7 @@ namespace AimCombat.Battle
         Rusher,
         /// <summary>제자리에서 탄환 발사.</summary>
         Ranged,
-        /// <summary>약점 부위 1곳, 패턴 2개. 행동은 BossBrain 이 맡는다.</summary>
+        /// <summary>약점 부위 1곳, 부술 수 있는 팔 2곳, 패턴 2개. 행동은 BossBrain 이, 부위는 BossPart 가 맡는다.</summary>
         Boss,
     }
 
@@ -110,12 +110,12 @@ namespace AimCombat.Battle
         /// <summary>노릴 아군을 다시 고른다. 살아 있는 아군이 없으면 null.</summary>
         public AllyUnit PickTarget() => pickTarget?.Invoke();
 
-        /// <summary>대상 아군에게 탄환을 쏜다(SPEC 2절: 쏜 순간의 자세를 기억한다).</summary>
-        public void FireProjectile(AllyUnit ally, float damage)
+        /// <summary>대상 아군에게 탄환을 쏜다(SPEC 2절: 쏜 순간의 자세를 기억한다). from 을 주면 그 위치에서 쏜다(보스 팔의 포문).</summary>
+        public void FireProjectile(AllyUnit ally, float damage, Transform from = null)
         {
             if (projectileTemplate == null || ally == null) return;
             EnemyProjectile projectile = Instantiate(projectileTemplate);
-            projectile.Launch(muzzle.position, ally, damage);
+            projectile.Launch((from != null ? from : muzzle).position, ally, damage);
         }
 
         /// <summary>몸을 번쩍인다. 1이 가장 밝다.</summary>
