@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Characters
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Characters
+  m_GUID: e4ce02af618ffe84db3be355e67865c6
+  m_SerializeEntries:
+  - m_GUID: 0a157822ad9e2cc4a88d0bb8986bb6f5
+    m_Address: Characters/Shotgun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 115740385edc4c54c947cfca6d36ca6f
+    m_Address: Characters/Rapid
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a2b3c4d5e6f40718293a4b5c6d7e8f9
+    m_Address: Characters/Charge/Data
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b3c4d5e6f7041829304b5c6d7e8f9a0
+    m_Address: Characters/Rapid/Data
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3461931a8eafe9447af6811ef7e90105
+    m_Address: Characters/Shotgun/Face
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39dab4e8785d0814eb212f404ef11033
+    m_Address: Characters/Rapid/CutIn
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a8968104483e1746a83a905b282d511
+    m_Address: Characters/Rapid/Face
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3c4d5e6f708142930415c6d7e8f9a0b1
+    m_Address: Characters/Shotgun/Data
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4e323cffd1c1f2449973e350d5d2c14b
+    m_Address: Characters/Shotgun/CutIn
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 998d10233c719774f9f087c0718d7dc7
+    m_Address: Characters/Charge/Face
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b24f0d453621abb4a81e1a94b123b1af
+    m_Address: Characters/Charge/CutIn
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be4dac7b29df96c408c43a1bf30526d2
+    m_Address: Characters/Charge
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - character
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 3fae8e1af057ddc43be59f3204926329, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 6d90f140e80eb4b4a8bcae439e3e31c3, type: 2}
+    - {fileID: 11400000, guid: 8ca55053858f822419e749c98d028cca, type: 2}

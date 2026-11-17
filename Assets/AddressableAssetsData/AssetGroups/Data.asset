@@ -1,0 +1,329 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Data
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Data
+  m_GUID: eac5f7b088e2f05468da46f69c052efe
+  m_SerializeEntries:
+  - m_GUID: 001469fce2c6a1d4c86f7e08554f8679
+    m_Address: Data/Skills/Skill_Shotgun_BBurst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 05dae637b8f90a1b68192a3b4c5dcedd
+    m_Address: Data/Skills/Skill_Rapid_2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 063237bf963cf124cb20e66a5a6c0566
+    m_Address: Data/Statuses/Status_Suppress
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0c1566f8b4eff6d48a7c3b246db5d536
+    m_Address: Data/Enemies/Enemy_Ranged
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0dab431a699489446a931fc99dfe6437
+    m_Address: Data/Statuses/Status_CritChanceUp
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 10de7aa5032c93649ba31966b5cd1b69
+    m_Address: Data/Statuses/Status_Overheat
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 11e8fdca246ed8149b39b562a9acebd8
+    m_Address: Data/Statuses/Status_Vulnerable
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 21fb0a04f2df7fe4b87f3145c3e1da7d
+    m_Address: Data/Skills/Skill_Rapid_B2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 225dbf69498cfdc4686b000c17abf67f
+    m_Address: Data/Statuses/Status_HeavySlow
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 27fc0859da1b2c3d8a3b4c5d6e7fe0ff
+    m_Address: Data/Skills/Skill_Shotgun_1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 286b508d6e96d5c4fa5f941189ddd6b2
+    m_Address: Data/Enemies/Enemy_Rusher
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2a2db26d1151a114383134e9ef122b36
+    m_Address: Data/Statuses/Status_WeakPointUp
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 33152c995b2999240b799cd5a0abeeff
+    m_Address: Data/Skills/Skill_Charge_B1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35fe6a69c62a28241a865368c3230958
+    m_Address: Data/Statuses/Status_HuntInstinct
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 380d196aeb2c3d4e9b4c5d6e7f80f110
+    m_Address: Data/Skills/Skill_Shotgun_2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3870080c558c68f41b1c7edcdf60fc7b
+    m_Address: Data/Statuses/Status_ArmorCrack
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4328a71e4184ae5419f3c726f4940ca3
+    m_Address: Data/Skills/Skill_Shotgun_B2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 43596c938e220374e9b1f11f09ba1f8e
+    m_Address: Data/Enemies/Enemy_Boss
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4a4aa936e9e79cb4f9a7b6ee247a4619
+    m_Address: Data/Skills/Skill_Rapid_B1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f1e2a7b9c3d4e5fa6b7c8d9e0f10211
+    m_Address: Data/Statuses/Status_WeakOpen
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5a2f3b8c0d4e5f60b7c8d9e0f1a21322
+    m_Address: Data/Statuses/Status_Resolve
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5be9333f947f4cd4f8741124d73064f0
+    m_Address: Data/Skills/Skill_Shotgun_Burst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5fabb1a5c79948044b9393c502156822
+    m_Address: Data/Statuses/Status_Oath
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b304c9d1e5f6071c8d9e0f1a2b32433
+    m_Address: Data/Statuses/Status_CoreUp
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ba9ed1f0e7b75c41a79dcae1697ae26
+    m_Address: Data/Statuses/Status_AttackUp
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6d8cb1d11ec5ce64f894a5063805b8c2
+    m_Address: Data/Statuses/Status_Slow
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7c415dae2f607182d9e0f1a2b3c43544
+    m_Address: Data/Statuses/Status_DamageUp
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87fc5ce51c5856540b7ed82b801106e5
+    m_Address: Data/Feel/BossIntro
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8d526ebf30718293e0f1a2b3c4d54655
+    m_Address: Data/Statuses/Status_Frenzy
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 955ca46b2ea855d41aadf41dd8561e5d
+    m_Address: Data/Statuses/Status_Burn
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9e637fc0418293a4f1a2b3c4d5e65766
+    m_Address: Data/Statuses/Status_LastStand
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a08251b64e5e6b840b9da1afff0389d8
+    m_Address: Data/Statuses/Status_Stun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a0e16e98d486d45479ade5d079900aed
+    m_Address: Data/Skills/Skill_Charge_B2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a159c19b79279e24986be61ded8ebede
+    m_Address: Data/Skills/Skill_Rapid_BBurst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a29778a55d0e09948b665fb657f87e4f
+    m_Address: Data/Statuses/Status_Exposed
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a3dec8841fd787b41a54637d404c2965
+    m_Address: Data/Skills/Skill_Shotgun_B1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a93b50e9c9c21b54b80d808993592b91
+    m_Address: Data/Statuses/Status_Regroup
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: af7480d15293a4b502b3c4d5e6f76877
+    m_Address: Data/Skills/Skill_Charge_1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b08591e263a4b5c613c4d5e6f7087988
+    m_Address: Data/Skills/Skill_Charge_2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b23ff2911854cf5479c8217778d02019
+    m_Address: Data/Feel/Feel_Rapid
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b50643524aaf6114f8616ef701cc321b
+    m_Address: Data/Skills/Skill_Charge_Burst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c5b80685968841b409a809fd89557127
+    m_Address: Data/Statuses/Status_SquadAttackUp
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cbb84d0a4a36d064c9b7b7479af67233
+    m_Address: Data/Skills/Skill_Charge_BBurst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d021e28e171f9194bbf60f5318b47e3a
+    m_Address: Data/Skills/Skill_Rapid_Burst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d130960d3bd825745a367f3ebbdfc71f
+    m_Address: Data/Feel/Feel_Shotgun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e87cb71c6dc3d394cba996c2a4889643
+    m_Address: Data/Feel/BurstCutIn
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e8fc124c5808be845b7d463075e20952
+    m_Address: Data/Statuses/Status_Overcharge
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e937d628cb6b74148a9f7c5841f12ad5
+    m_Address: Data/Feel/Feel_Charge
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f1b9e2bda460ca64e948dae5328bbb12
+    m_Address: Data/Statuses/Status_AimStable
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f4c9d526a7e8f90a5708192a3b4cbdcc
+    m_Address: Data/Skills/Skill_Rapid_1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ffbcad2a9841fa04789e81faa368dff4
+    m_Address: Data/Feel/FeelSettings
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - data
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 3fae8e1af057ddc43be59f3204926329, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: c8574b618e71b594a8940bcf8175aac8, type: 2}
+    - {fileID: 11400000, guid: a8590d2d5242e454c9ac209c7aa2d889, type: 2}

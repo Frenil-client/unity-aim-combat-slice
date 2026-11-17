@@ -35,6 +35,7 @@ namespace AimCombat.Battle
 
         [SerializeField] private SquadController squad;
         [SerializeField] private CombatInput input;
+        [Tooltip("적 원본(프리팹). 씬이 시작할 때 Addressables 로 불러와 넣는다(EnemyContent).")]
         [SerializeField] private EnemyUnit rusherTemplate;
         [SerializeField] private EnemyUnit rangedTemplate;
         [SerializeField] private Wave[] waves;
@@ -46,6 +47,8 @@ namespace AimCombat.Battle
         [SerializeField] private bool selectLoadout = true;
         [Tooltip("웨이브 사이 쉬는 시간(초).")]
         [SerializeField] private float waveBreak = 2.5f;
+        [Tooltip("복제한 적을 놓는 부모.")]
+        [SerializeField] private Transform enemyRoot;
 
         [Header("등장 위치")]
         [SerializeField] private Vector2 rusherSpawnX = new Vector2(-6f, 6f);
@@ -73,6 +76,15 @@ namespace AimCombat.Battle
 
         /// <summary>나와 있는 보스. 나오기 전이거나 쓰러졌으면 null 이거나 IsDead.</summary>
         public EnemyUnit Boss { get; private set; }
+
+        /// <summary>적 원본과 복제할 부모를 넣는다(Addressables, EnemyContent). 이 컴포넌트가 켜지기(Awake) 전에만 부른다.</summary>
+        public void SetTemplates(EnemyUnit rusher, EnemyUnit ranged, EnemyUnit boss, Transform root)
+        {
+            rusherTemplate = rusher;
+            rangedTemplate = ranged;
+            bossTemplate = boss;
+            enemyRoot = root;
+        }
 
         /// <summary>보스가 나온 순간. 등장 연출(BossIntro)이 받는다.</summary>
         public event Action<EnemyUnit> BossSpawned;
@@ -145,7 +157,7 @@ namespace AimCombat.Battle
             {
                 bool restart = input.FirePressedThisFrame
                     || (UnityEngine.InputSystem.Keyboard.current?.rKey.wasPressedThisFrame ?? false);
-                if (restart) SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                if (restart) AimCombat.Content.SceneFlow.Reload(); // Addressables 씬이라 주소로 다시 연다
                 return;
             }
 
@@ -189,7 +201,7 @@ namespace AimCombat.Battle
 
         private void SpawnBoss()
         {
-            EnemyUnit boss = Instantiate(bossTemplate, bossTemplate.transform.parent);
+            EnemyUnit boss = Instantiate(bossTemplate, enemyRoot);
             boss.name = "Boss";
             boss.Spawn(new Vector3(bossSpawn.x, bossTemplate.transform.position.y, bossSpawn.z), PickAllyTarget);
             spawned.Add(boss);
@@ -225,7 +237,7 @@ namespace AimCombat.Battle
                 UnityEngine.Random.Range(xRange.x, xRange.y), template.transform.position.y,
                 UnityEngine.Random.Range(zRange.x, zRange.y));
 
-            EnemyUnit enemy = Instantiate(template, template.transform.parent);
+            EnemyUnit enemy = Instantiate(template, enemyRoot);
             enemy.name = template.name.Replace("Template", "") + spawned.Count;
             enemy.Spawn(position, PickAllyTarget);
             spawned.Add(enemy);

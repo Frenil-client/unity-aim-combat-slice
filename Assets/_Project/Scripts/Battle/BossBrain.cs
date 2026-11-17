@@ -123,6 +123,12 @@ namespace AimCombat.Battle
             if (slamMarker != null) slamMarker.gameObject.SetActive(false);
         }
 
+        // 표시를 떼어 냈으면 보스와 함께 지운다.
+        private void OnDestroy()
+        {
+            if (slamMarker != null && !slamMarker.IsChildOf(transform)) Destroy(slamMarker.gameObject);
+        }
+
         public void Begin(EnemyUnit owner)
         {
             unit = owner;
@@ -147,6 +153,8 @@ namespace AimCombat.Battle
             }
 
             unit.Combatant.Broken += _ => Enter(BossPhase.Broken, 0f);
+            // 강타 표시는 보스 프리팹 안에 들어 있다. 보스가 움직이고 기울어도 바닥 자리에 머물도록 보스 밖(같은 부모)으로 떼어 낸다.
+            if (slamMarker != null && slamMarker.IsChildOf(transform)) slamMarker.SetParent(transform.parent, true);
             if (slamMarker != null) slamMarker.gameObject.SetActive(false);
             Enter(BossPhase.Approach, 0f);
         }

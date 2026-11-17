@@ -43,6 +43,13 @@ namespace AimCombat.Feel
         }
 
         public FeelSettings Settings => settings;
+
+        /// <summary>실행 중에 불러온 타격감 데이터를 넣는다(Addressables, FeelContent). 이 컴포넌트가 켜지기(Awake) 전에만 부른다.</summary>
+        public void SetData(FeelSettings value, FeelPreset[] weaponPresets)
+        {
+            settings = value;
+            presets = weaponPresets;
+        }
         public FeelPreset PresetOf(WeaponKind kind) => presets[(int)kind];
         public int PresetCount => presets.Length;
         public FeelPreset PresetAt(int index) => presets[index];

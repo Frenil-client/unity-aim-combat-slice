@@ -32,9 +32,19 @@ namespace AimCombat.UI
             base.OnEnable();
         }
 
+        // 기반 레이아웃 그룹의 Update 는 에디터에서만 있다(편집 중 자식 크기 감시). 플레이어 빌드에는 없으므로 갈라 둔다.
+#if UNITY_EDITOR
         protected override void Update()
         {
             base.Update();
+            RefreshShape();
+        }
+#else
+        private void Update() => RefreshShape();
+#endif
+
+        private void RefreshShape()
+        {
             ScreenShape current = ScreenLayout.Current;
             if (current == shape) return;
             shape = current;

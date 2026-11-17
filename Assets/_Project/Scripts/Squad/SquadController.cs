@@ -295,6 +295,30 @@ namespace AimCombat.Squad
             }
         }
 
+        /// <summary>
+        /// 실행 중에 불러온 캐릭터를 index 번째 아군으로 꽂는다(Addressables, SquadContent). 이 컴포넌트가 켜지기(Awake) 전에만 부른다.
+        /// unit 이 없으면 쓰러지지 않고(사격장), data 가 없으면 스킬이 없다.
+        /// </summary>
+        public void BindMember(int index, GameObject character, AllyUnit unit, CharacterData data, Sprite face, Sprite cutIn)
+        {
+            if (members == null || index >= members.Length)
+            {
+                var grown = new Member[index + 1];
+                if (members != null) Array.Copy(members, grown, members.Length);
+                members = grown;
+            }
+            members[index] = new Member
+            {
+                rig = character.GetComponent<CharacterAimRig>(),
+                poseView = character.GetComponent<CharacterPoseView>(),
+                weapon = character.GetComponent<CharacterWeapon>(),
+                unit = unit,
+                character = data,
+                face = face,
+                cutIn = cutIn,
+            };
+        }
+
         private void Awake()
         {
             if (viewCamera == null) viewCamera = Camera.main;
@@ -372,6 +396,8 @@ namespace AimCombat.Squad
         {
             SetupSkills();
             triggers.Raise(SkillTrigger.BattleStart);
+            // 캐릭터는 실행 중에 불러와 이 컴포넌트와 같은 때 켜진다. Awake 순서상 무기가 탄을 채우기 전에 Awake 에서 그렸을 수 있어 다시 그린다.
+            RefreshAmmoText();
         }
 
         /// <summary>고른 스킬 세트의 번호. 캐릭터가 연결되지 않았으면 0.</summary>

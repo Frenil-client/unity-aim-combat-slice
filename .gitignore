@@ -44,3 +44,12 @@ AGENTS.md
 Thumbs.db
 .DS_Store
 /ArtSource/UI/*.py
+
+# ---- Addressables (Addressables Delivery 패키지 안내) ----
+/ServerData/
+/ci-logs/
+/Assets/AddressableAssetsData/link.xml
+/Assets/AddressableAssetsData/link.xml.meta
+# 콘텐츠 업데이트 기준. 지금은 로컬 그룹만 써서 업데이트 빌드를 하지 않는다. 원격 그룹을 두면 출시 빌드의 기준을 커밋한다.
+/Assets/AddressableAssetsData/*/addressables_content_state.bin
+/Assets/AddressableAssetsData/*/addressables_content_state.bin.meta

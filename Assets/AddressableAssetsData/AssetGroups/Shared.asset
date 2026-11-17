@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Shared
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Shared
+  m_GUID: 01b4dd2575dfa03478f7499ff20a93cb
+  m_SerializeEntries:
+  - m_GUID: 4dbc96916ee160740a1b86648abaad59
+    m_Address: Shared/Shaders
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - shared
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 647fddbaea470c1419a62a65f367a41f
+    m_Address: Shared/Fonts
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - shared
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c3584cce6beb1994bb2ebbaeaa9e2254
+    m_Address: Shared/VFX
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - shared
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1e9c4d3eb276f542a509af458f8f090
+    m_Address: Shared/UI
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - shared
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f467eeebf5f96964684a2b28867350cf
+    m_Address: Shared/Environment
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - shared
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 3fae8e1af057ddc43be59f3204926329, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 3f8e5f74cafb9ba4dba964142326617f, type: 2}
+    - {fileID: 11400000, guid: 230b49198f1ad1b4fab17c6cdccf6f54, type: 2}
