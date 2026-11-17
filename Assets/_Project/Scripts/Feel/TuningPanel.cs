@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using AimCombat.Data;
 using AimCombat.Input;
@@ -10,7 +9,7 @@ namespace AimCombat.Feel
 {
     /// <summary>
     /// 타격감 튜닝 패널(SPEC 4절). F1 로 연다. 실행 중에 무기별 프리셋과 공통 설정의 값을 슬라이더로 바꾸면 바로 반영되고,
-    /// 저장하면 데이터 에셋에 쓴다(에디터). 빌드에서는 같은 내용을 기기 저장소의 JSON 으로 쓰고 다음 실행 때 읽는다.
+    /// 저장하면 데이터 에셋에 쓴다. 에디터 전용이라 빌드에서는 스스로 빠진다(2026-11-17).
     /// - 값 목록은 에셋의 공개 필드를 리플렉션으로 읽어 만든다. Range 가 붙은 숫자는 슬라이더, bool 은 토글, Color 는 RGB 슬라이더.
     ///   그래서 프리셋에 필드를 더해도 패널 코드를 고치지 않는다.
     /// - 되돌리기는 패널을 연 순간(또는 마지막 저장)의 값으로 돌린다.
@@ -37,6 +36,10 @@ namespace AimCombat.Feel
 
         private void Awake()
         {
+#if !UNITY_EDITOR
+            // 에디터 전용 도구다. 빌드에서는 스스로 빠진다(F1 도, 패널 위 입력 가로채기도 없다).
+            Destroy(this);
+#else
             for (int i = 0; i < director.PresetCount; i++)
             {
                 FeelPreset preset = director.PresetAt(i);
@@ -50,12 +53,10 @@ namespace AimCombat.Feel
                 tabNames.Add("공통");
             }
 
-#if !UNITY_EDITOR
-            foreach (ScriptableObject asset in assets) LoadFromDevice(asset);
-#endif
             open = openAtStart;
             if (open) TakeSnapshots();
             CombatInput.ExtraUiHitTest = IsOverPanel;
+#endif
         }
 
         private void OnDestroy()
@@ -178,21 +179,8 @@ namespace AimCombat.Feel
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssetIfDirty(asset);
             status = asset.name + " 에셋에 저장";
-#else
-            string path = DevicePath(asset);
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, JsonUtility.ToJson(asset, true));
-            status = asset.name + " 기기에 저장";
 #endif
             snapshots[asset] = JsonUtility.ToJson(asset);
-        }
-
-        private static string DevicePath(ScriptableObject asset) => Path.Combine(Application.persistentDataPath, "feel", asset.name + ".json");
-
-        private static void LoadFromDevice(ScriptableObject asset)
-        {
-            string path = DevicePath(asset);
-            if (File.Exists(path)) JsonUtility.FromJsonOverwrite(File.ReadAllText(path), asset);
         }
 
         private void EnsureStyles()
