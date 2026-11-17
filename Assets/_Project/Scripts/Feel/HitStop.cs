@@ -32,6 +32,14 @@ namespace AimCombat.Feel
             Time.timeScale = baseline * scale;
         }
 
+        /// <summary>멈춘 중이면 바로 풀고 평소 배율로 돌린다. 다른 연출이 시간을 직접 멈추기 전에 부른다(보스 등장).</summary>
+        public void Release()
+        {
+            if (!IsStopped) return;
+            remaining = 0f;
+            Time.timeScale = baseline;
+        }
+
         private void Update()
         {
             if (!IsStopped) return;

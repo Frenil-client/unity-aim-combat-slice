@@ -29,6 +29,20 @@ namespace AimCombat.Battle
         private EnemyUnit unit;
         private BossPhase shownPhase;
         private bool hasShown;
+        private bool entrance;
+
+        /// <summary>
+        /// 등장 연출(BossIntro) 동안 게임 시간이 멈춰도 모델은 실제 시간으로 날개를 편 동작(탄막 동작)을 보여 준다.
+        /// 끝나면 게임 시간으로 돌아가 지금 패턴 단계의 동작을 다시 고른다.
+        /// </summary>
+        public void PlayEntrance(bool playing)
+        {
+            if (animator == null || unit.IsDead) return;
+            entrance = playing;
+            animator.updateMode = playing ? AnimatorUpdateMode.UnscaledTime : AnimatorUpdateMode.Normal;
+            if (playing) animator.CrossFadeInFixedTime(BarrageState, crossFade);
+            else hasShown = false;
+        }
 
         private void Awake()
         {
@@ -44,7 +58,7 @@ namespace AimCombat.Battle
 
         private void Update()
         {
-            if (animator == null || unit.IsDead) return;
+            if (animator == null || unit.IsDead || entrance) return;
             BossPhase phase = brain.Phase;
             animator.speed = phase == BossPhase.Broken ? brokenSpeed : 1f;
             if (hasShown && phase == shownPhase) return;

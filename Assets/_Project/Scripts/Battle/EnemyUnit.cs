@@ -45,6 +45,8 @@ namespace AimCombat.Battle
         [SerializeField] private float aimHeight = 0.9f;
         [Tooltip("돌격형이 멈춰서 공격하는 깊이(z). 엄폐물 바로 앞. 보스는 돌진이 멈추는 깊이.")]
         [SerializeField] private float attackLineZ = -0.6f;
+        [Tooltip("아군 쪽(정면)에서 이동 방향으로 몸을 돌리는 최대 각도(도). 옆이나 뒤를 보이지 않게 막는다.")]
+        [SerializeField, Range(0f, 80f)] private float maxTurnAngle = 40f;
 
         [Header("원거리형, 보스")]
         [SerializeField] private EnemyProjectile projectileTemplate;
@@ -113,12 +115,19 @@ namespace AimCombat.Battle
         /// <summary>노릴 아군을 다시 고른다. 살아 있는 아군이 없으면 null.</summary>
         public AllyUnit PickTarget() => pickTarget?.Invoke();
 
-        /// <summary>현재 모델의 정면(-Z)이 수평 이동 방향을 바라보게 한다. 정지하면 마지막 방향을 유지한다.</summary>
+        /// <summary>
+        /// 이동 방향 쪽으로 몸을 기울이되 늘 아군을 향한다. 적은 아군에게 옆이나 등을 보이지 않는다(보스 포함).
+        /// - 기준은 아군 쪽(월드 -Z, 모델 정면 -Z 와 같은 방향)이다. 이동의 좌우 성분만큼 돌리고 maxTurnAngle 에서 멈춘다.
+        /// - 아군에게서 멀어지는 이동(+Z)은 뒷걸음질로 보고 앞뒤를 뒤집어 같은 쪽으로 기울인다. 그래서 돌아서지 않는다.
+        /// 정지하면 마지막 방향을 유지한다.
+        /// </summary>
         public void FaceMovement(Vector3 movement)
         {
             movement.y = 0f;
             if (movement.sqrMagnitude <= 0.00000001f) return;
-            transform.rotation = Quaternion.LookRotation(-movement, Vector3.up);
+            float toward = Mathf.Max(Mathf.Abs(movement.z), 0.0001f);   // 아군 쪽으로 다가가는 성분(뒷걸음질은 뒤집는다)
+            float yaw = Mathf.Atan2(-movement.x, toward) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, Mathf.Clamp(yaw, -maxTurnAngle, maxTurnAngle), 0f);
         }
 
         /// <summary>대상 아군에게 탄환을 쏜다(SPEC 2절: 쏜 순간의 자세를 기억한다). from 을 주면 그 위치에서 쏜다(보스 팔의 포문).</summary>

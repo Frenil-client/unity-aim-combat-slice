@@ -82,6 +82,9 @@ namespace AimCombat.Battle
         private AimCombat.Feel.BurstCutIn cutIn;
         private bool resultRequested;
         private float hudAlpha = 1f;
+        private bool covered;
+        private bool cinematic;
+        private bool hudHidden;
 
         private void Awake()
         {
@@ -135,15 +138,31 @@ namespace AimCombat.Battle
             if (popup != null) popup.Show(victory);
         }
 
-        // 위에 팝업이 덮이면 전투 HUD 묶음(조준점, 피해 숫자, 알림, 아군 패널, 버스트, 보스 표시)을 숨기고, 걷히면 되돌린다.
-        // 켜고 끄지 않고 투명하게만 해서 HUD 가 스스로 켜고 끄는 것과 초기화 순서를 건드리지 않는다.
+        // 위에 팝업이 덮이거나 연출(보스 등장)이 화면을 쓰는 동안 전투 HUD 묶음(조준점, 피해 숫자, 알림, 아군 패널, 버스트, 보스 표시)을 숨기고,
+        // 둘 다 끝나면 되돌린다. 켜고 끄지 않고 투명하게만 해서 HUD 가 스스로 켜고 끄는 것과 초기화 순서를 건드리지 않는다.
         protected override void OnCoveredChanged(bool covered)
         {
+            this.covered = covered;
+            RefreshHudVisible();
+        }
+
+        /// <summary>연출이 화면을 쓰는 동안 전투 HUD 를 숨긴다(보스 등장 연출).</summary>
+        public void SetCinematic(bool playing)
+        {
+            cinematic = playing;
+            RefreshHudVisible();
+        }
+
+        private void RefreshHudVisible()
+        {
             if (hudGroup == null) return;
-            if (covered) hudAlpha = hudGroup.alpha;
-            hudGroup.alpha = covered ? 0f : hudAlpha;
-            hudGroup.blocksRaycasts = !covered;
-            hudGroup.interactable = !covered;
+            bool hidden = covered || cinematic;
+            if (hidden == hudHidden) return;
+            hudHidden = hidden;
+            if (hidden) hudAlpha = hudGroup.alpha;
+            hudGroup.alpha = hidden ? 0f : hudAlpha;
+            hudGroup.blocksRaycasts = !hidden;
+            hudGroup.interactable = !hidden;
         }
 
         private void RefreshAlly(int i)

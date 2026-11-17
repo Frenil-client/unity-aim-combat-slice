@@ -73,6 +73,9 @@ namespace AimCombat.Battle
 
         /// <summary>나와 있는 보스. 나오기 전이거나 쓰러졌으면 null 이거나 IsDead.</summary>
         public EnemyUnit Boss { get; private set; }
+
+        /// <summary>보스가 나온 순간. 등장 연출(BossIntro)이 받는다.</summary>
+        public event Action<EnemyUnit> BossSpawned;
         /// <summary>남은 제한 시간. 전투가 시작되기 전(스킬 세트 선택 중)에는 제한 시간 전체다.</summary>
         public float TimeLeft => started ? Mathf.Max(0f, timeLimit - (Time.time - startTime)) : timeLimit;
         public int EnemiesLeft => pending.Count + EnemyUnit.Alive.Count;
@@ -192,6 +195,7 @@ namespace AimCombat.Battle
             spawned.Add(boss);
             Boss = boss;
             bossSpawned = true;
+            BossSpawned?.Invoke(boss);
         }
 
         private void StartNextWave(float delay)
