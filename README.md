@@ -141,7 +141,7 @@ Boot(로딩 화면) → 전투 씬 → 스킬 세트 선택 → 웨이브 1, 2 �
 - Unity 는 [ci/unity.ps1](ci/unity.ps1)이 배치 모드로 한 번씩 띄우고, 단계별 로그를 `ci-logs/` 에 남겨 Jenkins 가 보관한다.
 - 플레이어 빌드는 Addressables 결과가 같은 플랫폼, 같은 프로필로 만들어졌는지 확인하고 아니면 거부한다(배포 패키지의 빌드 검사).
 
-Jenkins 설치(서비스 계정, 포트), 에이전트 레이블과 Unity 경로 설정, 파이프라인 작업 등록은 lobby-flow 의 [Jenkins 설치와 등록](https://github.com/Frenil-client/unity-lobby-flow/blob/main/docs/guides/jenkins-setup.md)과 [새 프로젝트에 붙이기 8절](https://github.com/Frenil-client/unity-lobby-flow/blob/main/docs/guides/new-project-setup.md)과 같은 순서로 했습니다. 이 프로젝트는 같은 PC 의 같은 Jenkins 에 작업(`aim-combat-slice`)만 하나 더 등록했고, 비공개 저장소는 Jenkins 서비스 계정의 Git 로그인으로 받습니다.
+Jenkins 설치(서비스 계정, 포트), 에이전트 레이블과 Unity 경로 설정, 파이프라인 작업 등록은 lobby-flow 의 [Jenkins 설치와 등록](https://github.com/Frenil-client/unity-lobby-flow/blob/main/docs/guides/jenkins-setup.md)과 [새 프로젝트에 붙이기 8절](https://github.com/Frenil-client/unity-lobby-flow/blob/main/docs/guides/new-project-setup.md)과 같은 순서로 했습니다. 이 프로젝트는 같은 PC 의 같은 Jenkins 에 작업(`aim-combat-slice`)만 하나 더 등록했습니다.
 
 ## 문제를 좁힌 과정
 
