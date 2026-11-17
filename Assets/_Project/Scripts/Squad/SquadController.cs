@@ -746,7 +746,7 @@ namespace AimCombat.Squad
             Vector3 screen = viewCamera.WorldToScreenPoint(member.autoTarget.AimPoint + member.autoAimOffset);
             if (screen.z <= 0f) return;
 
-            float scale = Screen.height / 1080f;
+            float scale = Mathf.Min(Screen.width, Screen.height) / 1080f; // 캔버스 짧은 변 1080 기준(AdaptiveCanvasScaler)
             Vector2 goal = screen;
             Vector2 next = Vector2.MoveTowards(input.AimScreenPosition, goal, autoReticleSpeed * scale * Time.deltaTime);
             input.SetAim(next);

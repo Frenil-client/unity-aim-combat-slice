@@ -79,7 +79,7 @@ GameObject:
   - component: {fileID: 3586482208777947430}
   - component: {fileID: 658340168094050173}
   - component: {fileID: 590220355045373072}
-  - component: {fileID: 3978077652336068376}
+  - component: {fileID: 2909846790366479531}
   - component: {fileID: 4847217309386764602}
   m_Layer: 0
   m_Name: Dim
@@ -185,7 +185,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3978077652336068376
+--- !u!114 &2909846790366479531
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -194,9 +194,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8905428511492263814}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
+  m_Script: {fileID: 11500000, guid: 3dd277314f70a4845b9eac9116a9cefd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.UI.AdaptiveCanvasScaler
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1

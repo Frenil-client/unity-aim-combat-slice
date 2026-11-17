@@ -167,7 +167,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 423689309946627640}
-  - component: {fileID: 8764050844263420854}
+  - component: {fileID: 5265362517790998867}
   m_Layer: 0
   m_Name: Cards
   m_TagString: Untagged
@@ -194,7 +194,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8764050844263420854
+--- !u!114 &5265362517790998867
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -203,9 +203,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1340560141439680876}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Script: {fileID: 11500000, guid: 81b8c8636ab5b7b42a2d51ced756be69, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.UI.ResponsiveStack
   m_Padding:
     m_Left: 0
     m_Right: 0
@@ -220,6 +220,8 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+  verticalInLandscape: 1
+  verticalInPortrait: 0
 --- !u!1 &3878344849486184059
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,6 +393,7 @@ GameObject:
   m_Component:
   - component: {fileID: 844574610889706380}
   - component: {fileID: 6188891422647724100}
+  - component: {fileID: 4787749394503305214}
   - component: {fileID: 4600224650490942191}
   - component: {fileID: 2085685156284989259}
   m_Layer: 0
@@ -441,6 +444,20 @@ MonoBehaviour:
   m_FlexibleWidth: 0
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &4787749394503305214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7020583206031279827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cefcf46369759704db57c10b1e973161, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.UI.ResponsiveLayoutSize
+  landscape: {x: 560, y: -1}
+  portrait: {x: 1000, y: -1}
 --- !u!114 &4600224650490942191
 MonoBehaviour:
   m_ObjectHideFlags: 0

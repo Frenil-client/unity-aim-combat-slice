@@ -15,7 +15,7 @@ namespace AimCombat.Feel
     ///   그래서 프리셋에 필드를 더해도 패널 코드를 고치지 않는다.
     /// - 되돌리기는 패널을 연 순간(또는 마지막 저장)의 값으로 돌린다.
     /// - 패널 위를 누른 것은 사격으로 치지 않는다.
-    /// 개발용 도구라 즉시 모드 GUI 로 그린다. 1080 높이를 기준으로 화면에 맞춰 키운다.
+    /// 개발용 도구라 즉시 모드 GUI 로 그린다. 화면의 짧은 변 1080 을 기준으로 화면에 맞춰 키운다(세로 화면은 폭).
     /// </summary>
     public sealed class TuningPanel : MonoBehaviour
     {
@@ -75,7 +75,7 @@ namespace AimCombat.Feel
         private bool IsOverPanel(Vector2 screenPoint)
         {
             if (!open) return false;
-            float s = Screen.height / ReferenceHeight;
+            float s = Mathf.Min(Screen.width, Screen.height) / ReferenceHeight;
             var guiPoint = new Vector2(screenPoint.x / s, (Screen.height - screenPoint.y) / s);
             return panelRect.Contains(guiPoint);
         }
@@ -85,7 +85,7 @@ namespace AimCombat.Feel
             if (!open || assets.Count == 0) return;
             EnsureStyles();
 
-            float s = Screen.height / ReferenceHeight;
+            float s = Mathf.Min(Screen.width, Screen.height) / ReferenceHeight;
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
             panelRect = new Rect(20f, 140f, 560f, 820f);
             GUI.Box(panelRect, GUIContent.none);
