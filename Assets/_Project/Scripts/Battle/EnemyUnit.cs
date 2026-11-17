@@ -84,8 +84,8 @@ namespace AimCombat.Battle
         public Transform Muzzle => muzzle;
         public BossBrain Boss => boss;
 
-        /// <summary>감속을 반영한 이동 속도 배율. 감속은 최댓값형이라 가장 강한 하나만 들어온다.</summary>
-        public float MoveMultiplier => combatant == null ? 1f : 1f - Mathf.Clamp(FixedConvert.ToFloat(combatant.Statuses.Sum(StatKind.Slow)), 0f, 0.9f);
+        /// <summary>감속을 반영한 이동 속도 배율. 능력치(stat-system)의 MoveSpeed 최종값이다(기본 1, 감속은 최댓값형이라 가장 강한 하나만 모디파이어로 붙는다).</summary>
+        public float MoveMultiplier => combatant == null ? 1f : Mathf.Clamp(FixedConvert.ToFloat(combatant.GetStat(StatSystem.StatId.MoveSpeed)), 0.1f, 1f);
 
         /// <summary>아군이 노리는 지점(몸 중심).</summary>
         public Vector3 AimPoint => transform.position + Vector3.up * aimHeight;

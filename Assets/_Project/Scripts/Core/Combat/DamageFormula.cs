@@ -1,3 +1,5 @@
+using StatSystem;
+
 namespace AimCombat.Core.Combat
 {
     /// <summary>한 번의 피해 계산에 들어가는 값. 사격은 Shot 으로 만들고 해당하는 항목만 채운다.</summary>
@@ -57,15 +59,17 @@ namespace AimCombat.Core.Combat
         /// <summary>
         /// 공격자의 버프와 대상의 방어력, 디버프를 채운다. 공격력 증가, 치명 항목, 약점 항목은 공격자에게서,
         /// 방어력과 받는 피해 증가는 대상에게서 읽는다. 대상이 없으면(사격장 표적) 공격자 쪽만 채운다.
+        /// 공격력 증가, 치명 항목, 주는 피해 증가는 능력치(stat-system)의 최종값이고, stat-system 에 없는
+        /// 약점 항목과 받는 피해 증가는 상태효과 합계를 바로 읽는다(Combatant 주석).
         /// </summary>
         public void ApplyStatuses(Combatant attacker, Combatant target)
         {
             if (attacker != null)
             {
-                AttackUpSum = attacker.Statuses.Sum(StatKind.AttackUp);
-                CritBonusUp = attacker.Statuses.Sum(StatKind.CritBonusUp);
+                AttackUpSum = attacker.GetStat(StatId.AttackPowerPercent);
+                CritBonusUp = attacker.GetStat(StatId.CriticalDamage);
                 WeakPointBonusUp = attacker.Statuses.Sum(StatKind.WeakPointBonusUp);
-                DamageUpSum = attacker.Statuses.Sum(StatKind.DamageUp);
+                DamageUpSum = attacker.GetStat(StatId.Damage);
             }
             if (target != null)
             {
@@ -125,10 +129,10 @@ namespace AimCombat.Core.Combat
             return Compute(input);
         }
 
-        /// <summary>치명 확률. 기본 15%에 공격자의 치명 확률 증가를 더한다.</summary>
+        /// <summary>치명 확률. 공격자 능력치(stat-system)의 CriticalRate 최종값이다. 기본값 15%에 치명 확률 증가 버프가 모디파이어로 붙어 있다.</summary>
         public static Fixed CritChance(Combatant attacker)
         {
-            return attacker == null ? BaseCritChance : BaseCritChance + attacker.Statuses.Sum(StatKind.CritChanceUp);
+            return attacker == null ? BaseCritChance : attacker.GetStat(StatId.CriticalRate);
         }
 
         /// <summary>3단계 주요 배율. 1 + 해당하는 항목의 합.</summary>

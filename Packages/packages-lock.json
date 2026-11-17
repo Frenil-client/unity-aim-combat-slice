@@ -10,6 +10,13 @@
       },
       "hash": "5a5254fffa321cfbfb53c582d065cfe8bebc966a"
     },
+    "com.frenil.stat-system": {
+      "version": "https://github.com/Frenil-client/unity-stat-system.git#v3.0.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "38ff67cb296f8b51996d1c1ecd4a628e6a200ecb"
+    },
     "com.frenil.uisystem": {
       "version": "https://github.com/Frenil-client/unity-ui-system.git?path=/Assets/UISystem#v0.3.1",
       "depth": 0,

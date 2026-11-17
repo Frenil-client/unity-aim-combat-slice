@@ -14,6 +14,9 @@
 
   <ItemGroup>
     <Compile Include="..\..\Assets\_Project\Scripts\Core\**\*.cs" LinkBase="Core" />
+    <!-- Core 가 참조하는 재사용 패키지 stat-system(com.frenil.stat-system, 엔진 참조 없음). Unity 가 받아 둔 패키지 캐시의 소스를 함께 컴파일한다.
+         Unity 로 프로젝트를 한 번 열어 Library/PackageCache 가 생긴 뒤에 빌드한다. -->
+    <Compile Include="..\..\Library\PackageCache\com.frenil.stat-system@*\Runtime\**\*.cs" LinkBase="StatSystem" />
   </ItemGroup>
 
 </Project>

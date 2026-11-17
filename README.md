@@ -173,6 +173,7 @@ PLAN 과 SPEC 의 첫 내용은 기준을 잡은 초안이고, 그 뒤 작업하
 |---|---|---|
 | `com.frenil.uisystem` v0.3.1 | [unity-ui-system](https://github.com/Frenil-client/unity-ui-system) | UI 스택. 전투, 사격장 화면(UIScreen)과 스킬 세트 선택, 결과 팝업(UIPopup), 공유 Dim, 정렬과 입력 차단. 프리팹 공급원 인터페이스에 Addressables 구현([AddressablesUIPrefabProvider](Assets/_Project/Scripts/Content/AddressablesUIPrefabProvider.cs))을 꽂아 팝업을 주소로 연다 |
 | `com.frenil.addressables-delivery` | [unity-lobby-flow](https://github.com/Frenil-client/unity-lobby-flow) | Addressables 프로필과 카탈로그 설정, 빌드 창과 빌드 검사, 리소스 핸들 묶음(`AssetHandleSet`)과 보유 수 기록(`ResourceCounters`), Jenkins 템플릿(`Jenkinsfile`, `ci/unity.ps1`, `ci/integrity.ps1`) |
+| `com.frenil.stat-system` v3.0.0 | [unity-stat-system](https://github.com/Frenil-client/unity-stat-system) | 전투원 능력치([Combatant](Assets/_Project/Scripts/Core/Combat/Combatant.cs)). 공격력, 방어력은 기본값으로 두고, 상태효과 합계를 공격력 증가, 치명 확률, 치명 피해, 주는 피해, 이동 속도의 모디파이어로 붙여 최종값을 피해 계산과 이동에 쓴다. 패키지에 없는 약점 피해 증가, 받는 피해 증가는 상태효과 합계를 그대로 읽는다. 고정소수점 단위 변환은 [StatBridge](Assets/_Project/Scripts/Core/Combat/StatBridge.cs) |
 | Synthesis.Core | 이전 프로젝트 SYNTHESIS(DefenceGame) | 고정소수점(`Fixed`), 결정적 난수, 틱 누적, CSV 와 문자열 도구는 그대로 복사했다. 스킬 계획과 검증은 방식만 가져와 이 전투의 트리거와 효과에 맞게 새로 썼다. 비교 내용은 [SPEC.md](SPEC.md) 5절 |
 
 ## 리소스 출처와 작업 범위

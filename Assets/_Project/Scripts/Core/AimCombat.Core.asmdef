@@ -1,7 +1,9 @@
 {
     "name": "AimCombat.Core",
     "rootNamespace": "AimCombat.Core",
-    "references": [],
+    "references": [
+        "StatSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
