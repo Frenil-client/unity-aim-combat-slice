@@ -1,5 +1,4 @@
 using System;
-using AddressablesDelivery.Loading;
 using AimCombat.Battle;
 using AimCombat.Data;
 using AimCombat.Squad;
@@ -9,8 +8,9 @@ using UnityEngine.Rendering;
 namespace AimCombat.Content
 {
     /// <summary>
-    /// 분대 캐릭터를 주소로 불러와 자리(slot)에 세우고 분대 조작(SquadController)에 꽂는다.
+    /// 분대 캐릭터를 자리(slot)에 세우고 분대 조작(SquadController)에 꽂는다.
     /// 전투 씬은 스킬 구성(CharacterData), 얼굴과 컷인 그림, 엄폐물까지 함께 꽂고, 사격장은 캐릭터만 세운다.
+    /// 쓰는 주소: Characters/이름(프리팹), 전투 씬은 Characters/이름/Data, /Face, /CutIn 도. 씬의 기초 리소스 목록에 있어야 한다.
     /// </summary>
     public sealed class SquadContent : ContentStep
     {
@@ -27,23 +27,18 @@ namespace AimCombat.Content
 
         [SerializeField] private SquadController squad;
         [SerializeField] private Slot[] slots;
-        [Tooltip("스킬 구성과 얼굴, 컷인 그림도 불러온다(전투 씬). 끄면 캐릭터만 세운다(사격장).")]
+        [Tooltip("스킬 구성과 얼굴, 컷인 그림도 꽂는다(전투 씬). 끄면 캐릭터만 세운다(사격장).")]
         [SerializeField] private bool withCombatData = true;
 
-        public override async Awaitable LoadAsync(AssetHandleSet handles)
+        public override void Apply()
         {
             for (int i = 0; i < slots.Length; i++)
             {
                 Slot slot = slots[i];
-                GameObject prefab = await Require<GameObject>(handles, ContentAddress.Character(slot.character));
-                CharacterData data = null;
-                Sprite face = null, cutIn = null;
-                if (withCombatData)
-                {
-                    data = await Require<CharacterData>(handles, ContentAddress.CharacterData(slot.character));
-                    face = await handles.LoadAsync<Sprite>(ContentAddress.CharacterFace(slot.character));
-                    cutIn = await handles.LoadAsync<Sprite>(ContentAddress.CharacterCutIn(slot.character));
-                }
+                GameObject prefab = Require<GameObject>(ContentAddress.Character(slot.character));
+                CharacterData data = withCombatData ? Require<CharacterData>(ContentAddress.CharacterData(slot.character)) : null;
+                Sprite face = withCombatData ? Optional<Sprite>(ContentAddress.CharacterFace(slot.character)) : null;
+                Sprite cutIn = withCombatData ? Optional<Sprite>(ContentAddress.CharacterCutIn(slot.character)) : null;
 
                 GameObject character = Instantiate(prefab, slot.point.position, slot.point.rotation, slot.point.parent);
                 character.name = prefab.name;

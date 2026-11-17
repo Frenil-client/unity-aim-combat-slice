@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df90c6b7c934ece4c98845fab05b0d52, type: 3}
+  m_Name: Content_Battle
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Content.SceneContentSet
+  sceneAddress: Battle
+  entries:
+  - address: Characters/Charge
+    kind: 0
+    retention: 1
+  - address: Characters/Charge/Data
+    kind: 0
+    retention: 0
+  - address: Characters/Charge/Face
+    kind: 1
+    retention: 0
+  - address: Characters/Charge/CutIn
+    kind: 1
+    retention: 0
+  - address: Characters/Rapid
+    kind: 0
+    retention: 1
+  - address: Characters/Rapid/Data
+    kind: 0
+    retention: 0
+  - address: Characters/Rapid/Face
+    kind: 1
+    retention: 0
+  - address: Characters/Rapid/CutIn
+    kind: 1
+    retention: 0
+  - address: Characters/Shotgun
+    kind: 0
+    retention: 1
+  - address: Characters/Shotgun/Data
+    kind: 0
+    retention: 0
+  - address: Characters/Shotgun/Face
+    kind: 1
+    retention: 0
+  - address: Characters/Shotgun/CutIn
+    kind: 1
+    retention: 0
+  - address: Enemies/Rusher
+    kind: 0
+    retention: 0
+  - address: Enemies/Ranged
+    kind: 0
+    retention: 0
+  - address: Enemies/Boss
+    kind: 0
+    retention: 0
+  - address: Data/Feel/FeelSettings
+    kind: 0
+    retention: 0
+  - address: Data/Feel/Feel_Rapid
+    kind: 0
+    retention: 0
+  - address: Data/Feel/Feel_Charge
+    kind: 0
+    retention: 0
+  - address: Data/Feel/Feel_Shotgun
+    kind: 0
+    retention: 0

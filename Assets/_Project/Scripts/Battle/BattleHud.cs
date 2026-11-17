@@ -135,7 +135,9 @@ namespace AimCombat.Battle
             UIManager manager = UIManager.Instance;
             if (manager == null) return;
             BattleResultPopup popup = await manager.OpenAsync<BattleResultPopup>();
-            if (popup != null) popup.Show(victory);
+            if (popup == null) return;
+            popup.Show(victory);
+            popup.RestartRequested += director.Restart;   // 화면 아무 곳이나 누르면 다시 시작
         }
 
         // 위에 팝업이 덮이거나 연출(보스 등장)이 화면을 쓰는 동안 전투 HUD 묶음(조준점, 피해 숫자, 알림, 아군 패널, 버스트, 보스 표시)을 숨기고,

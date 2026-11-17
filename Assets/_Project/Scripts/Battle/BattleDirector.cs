@@ -86,6 +86,16 @@ namespace AimCombat.Battle
             enemyRoot = root;
         }
 
+        /// <summary>
+        /// 끝난 전투를 처음부터 다시 연다. R 키와 결과 팝업의 누르기(BattleResultPopup)가 부른다. 진행 중에는 무시한다.
+        /// Addressables 씬이라 주소로 다시 연다. 리소스는 보관소에 남아 있어 로딩 없이 넘어간다.
+        /// </summary>
+        public void Restart()
+        {
+            if (State == BattleState.Playing) return;
+            AimCombat.Content.SceneFlow.Reload();
+        }
+
         /// <summary>보스가 나온 순간. 등장 연출(BossIntro)이 받는다.</summary>
         public event Action<EnemyUnit> BossSpawned;
         /// <summary>남은 제한 시간. 전투가 시작되기 전(스킬 세트 선택 중)에는 제한 시간 전체다.</summary>
@@ -157,7 +167,7 @@ namespace AimCombat.Battle
             {
                 bool restart = input.FirePressedThisFrame
                     || (UnityEngine.InputSystem.Keyboard.current?.rKey.wasPressedThisFrame ?? false);
-                if (restart) AimCombat.Content.SceneFlow.Reload(); // Addressables 씬이라 주소로 다시 연다
+                if (restart) Restart();
                 return;
             }
 

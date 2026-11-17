@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd08dfae2ac39d04ebfd0b278cc019b3, type: 3}
+  m_Name: ContentCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::AimCombat.Content.ContentCatalog
+  sets:
+  - {fileID: 11400000, guid: 100a46a7ab6b26d4fb3f8045ebc4da94, type: 2}
+  - {fileID: 11400000, guid: c46b07099fc9ca64182bad3333f8c6d2, type: 2}
