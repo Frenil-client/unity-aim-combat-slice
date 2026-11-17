@@ -35,6 +35,8 @@ artifacts/
 # ---- 빌드 산출물 ----
 *.apk
 *.aab
+# 저장소에 올리는 배포용 빌드(README 의 Release 폴더)는 예외
+!/Release/*.apk
 
 # ---- 로컬 전용 작업 지침 문서 ----
 CLAUDE.md

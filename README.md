@@ -66,16 +66,6 @@ Boot(로딩 화면) → 전투 씬 → 스킬 세트 선택 → 웨이브 1, 2 �
 
 타격감 값은 무기별 프리셋 에셋에 있고, 에디터에서 F1 튜닝 패널을 열면 실행 중에 슬라이더로 바꿔 바로 보고 에셋에 저장합니다. 패널은 에셋의 공개 필드를 읽어 만들어서 프리셋에 값을 더해도 패널 코드를 고치지 않습니다.
 
-## 재사용한 패키지와 코드
-
-이전 프로젝트에서 만든 패키지와 코드를 가져와 썼습니다.
-
-| 가져온 것 | 출처 | 이 프로젝트에서 쓴 곳 |
-|---|---|---|
-| `com.frenil.uisystem` v0.3.1 | [unity-ui-system](https://github.com/Frenil-client/unity-ui-system) | UI 스택. 전투, 사격장 화면(UIScreen)과 스킬 세트 선택, 결과 팝업(UIPopup), 공유 Dim, 정렬과 입력 차단. 프리팹 공급원 인터페이스에 Addressables 구현([AddressablesUIPrefabProvider](Assets/_Project/Scripts/Content/AddressablesUIPrefabProvider.cs))을 꽂아 팝업을 주소로 연다 |
-| `com.frenil.addressables-delivery` | [unity-lobby-flow](https://github.com/Frenil-client/unity-lobby-flow) | Addressables 프로필과 카탈로그 설정, 빌드 창과 빌드 검사, 리소스 핸들 묶음(`AssetHandleSet`)과 보유 수 기록(`ResourceCounters`), Jenkins 템플릿(`Jenkinsfile`, `ci/unity.ps1`, `ci/integrity.ps1`) |
-| Synthesis.Core | 이전 프로젝트 SYNTHESIS(DefenceGame) | 고정소수점(`Fixed`), 결정적 난수, 틱 누적, CSV 와 문자열 도구는 그대로 복사했다. 스킬 계획과 검증은 방식만 가져와 이 전투의 트리거와 효과에 맞게 새로 썼다. 비교 내용은 [SPEC.md](SPEC.md) 5절 |
-
 ## 리소스를 불러오는 방식
 
 빌드 설정에는 `Boot` 씬 하나만 있습니다. Boot 가 Addressables 를 준비하고 전투 씬을 주소로 엽니다. 전투 씬에는 배경과 관리자(분대, 전투 감독, HUD)만 꺼진 채 저장돼 있고, 씬이 열리면 캐릭터와 적, 데이터를 꽂은 뒤 켜집니다.
@@ -109,7 +99,14 @@ Boot(로딩 화면) → 전투 씬 → 스킬 세트 선택 → 웨이브 1, 2 �
 
 ## 실행
 
-Unity 6000.3.9f1(URP)에서 프로젝트를 열고 `Assets/Scenes/Boot.unity` 를 실행합니다. 전투 씬(`Battle.unity`)을 바로 실행해도 되며, 이때는 로딩 화면 없이 씬이 스스로 리소스를 불러옵니다.
+**빌드 파일로 바로 해 보기**: [Release](Release) 폴더에 Jenkins 로 만든 개발 빌드가 있습니다.
+
+| 파일 | 대상 |
+|---|---|
+| [AimCombatSlice-Windows.zip](Release/AimCombatSlice-Windows.zip) | Windows 64비트. 압축을 풀고 `AimCombatSlice.exe` 실행 |
+| [AimCombatSlice.apk](Release/AimCombatSlice.apk) | Android(ARM64). 블루스택에서 가로, 세로 모드로 확인 |
+
+**에디터에서 실행**: Unity 6000.3.9f1(URP)에서 프로젝트를 열고 `Assets/Scenes/Boot.unity` 를 실행합니다. 전투 씬(`Battle.unity`)을 바로 실행해도 되며, 이때는 로딩 화면 없이 씬이 스스로 리소스를 불러옵니다.
 
 | 조작 | 키 | 터치 |
 |---|---|---|
@@ -120,7 +117,31 @@ Unity 6000.3.9f1(URP)에서 프로젝트를 열고 `Assets/Scenes/Boot.unity` �
 | 연출 켜고 끄기, 튜닝 패널(에디터) | F2, F1 | |
 | 다시 시작(결과 화면) | R | 화면 아무 곳 |
 
-실행 파일을 직접 만들 때는 **Tools ▸ Addressables Delivery ▸ 빌드 창**에서 Addressables 를 먼저 빌드합니다. 플레이어 빌드가 Addressables 를 함께 빌드하지 않도록 설정돼 있습니다. Jenkins 로는 `TARGET`(both, Windows, Android)과 `STEPS`(addressables+player, addressables)를 골라 실행합니다.
+에디터에서 실행 파일을 직접 만들 때는 **Tools ▸ Addressables Delivery ▸ 빌드 창**에서 Addressables 를 먼저 빌드합니다. 플레이어 빌드가 Addressables 를 함께 빌드하지 않도록 설정돼 있습니다.
+
+## 빌드 자동화(Jenkins)
+
+개발 PC 에 설치한 Jenkins 가 GitHub `main` 의 [Jenkinsfile](Jenkinsfile)을 읽어 Addressables 빌드, Windows 클라이언트, Android APK 를 만듭니다. Jenkinsfile 과 `ci/` 스크립트는 [unity-lobby-flow](https://github.com/Frenil-client/unity-lobby-flow) 의 배포 패키지가 내보내는 CI 템플릿에서 시작해, 이 프로젝트에 맞게 원격 업로드와 콘텐츠 업데이트 단계를 뺐습니다.
+
+| 빌드 실행(파라미터) | 단계 진행(#5) |
+|---|---|
+| ![파라미터와 함께 빌드: TARGET, STEPS](docs/media/jenkins-parameters.jpg) | ![단계: Checkout, 무결성 검사, Windows, Android, Post Actions. Windows 단계 안의 Unity 실행 두 번과 압축](docs/media/jenkins-stages.jpg) |
+
+![빌드 #5 결과: APK, Windows zip, 단계별 Unity 로그 보관. GitHub main 커밋 기준](docs/media/jenkins-build.jpg)
+
+빌드 #5 는 `main` 의 최신 커밋을 받아 무결성 검사, Windows(1분 39초), Android(2분 16초)를 거쳐 약 4분 만에 APK, Windows zip, 단계별 Unity 로그를 보관했습니다. [Release](Release) 폴더의 두 파일이 이 빌드의 산출물입니다.
+
+| 단계 | 하는 일 |
+|---|---|
+| 무결성 검사 | [ci/integrity.ps1](ci/integrity.ps1). Unity 를 띄우지 않고 저장소만 본다. JSON 카탈로그 심볼, 빌드 도중 상태(`preloadedAssets`, `link.xml`)가 커밋되지 않았는지, 동적 폰트를 비워 저장했는지, 셰이더 디버그 정보, 업로드 키 유출 |
+| Windows | Addressables 전체 빌드(로컬 그룹) → 개발 빌드 → zip 보관 |
+| Android | Addressables 전체 빌드 → 개발 빌드(APK) → 보관 |
+
+- `main` 에 커밋이 올라오면 15분 안에 폴링으로 무결성 검사만 돈다. 빌드는 **파라미터와 함께 빌드**에서 `TARGET`(both, Windows, Android)과 `STEPS`(addressables+player, addressables)를 골라 실행한다.
+- Unity 는 [ci/unity.ps1](ci/unity.ps1)이 배치 모드로 한 번씩 띄우고, 단계별 로그를 `ci-logs/` 에 남겨 Jenkins 가 보관한다.
+- 플레이어 빌드는 Addressables 결과가 같은 플랫폼, 같은 프로필로 만들어졌는지 확인하고 아니면 거부한다(배포 패키지의 빌드 검사).
+
+Jenkins 설치(서비스 계정, 포트), 에이전트 레이블과 Unity 경로 설정, 파이프라인 작업 등록은 lobby-flow 의 [Jenkins 설치와 등록](https://github.com/Frenil-client/unity-lobby-flow/blob/main/docs/guides/jenkins-setup.md)과 [새 프로젝트에 붙이기 8절](https://github.com/Frenil-client/unity-lobby-flow/blob/main/docs/guides/new-project-setup.md)과 같은 순서로 했습니다. 이 프로젝트는 같은 PC 의 같은 Jenkins 에 작업(`aim-combat-slice`)만 하나 더 등록했고, 비공개 저장소는 Jenkins 서비스 계정의 Git 로그인으로 받습니다.
 
 ## 문제를 좁힌 과정
 
@@ -144,11 +165,15 @@ PLAN 과 SPEC 의 첫 내용은 기준을 잡은 초안이고, 그 뒤 작업하
 | Jenkins | 무결성 검사, Windows 와 Android 의 Addressables 빌드와 플레이어 빌드, 산출물 보관 |
 | 리소스 수명 | 처음 실행, 다시 시작, 사격장 전환의 로드와 반환 수(위 표) |
 
-## 남은 것
+## 재사용한 패키지와 코드
 
-- 타격감 적용 전후 비교 영상(F2 로 연출을 끈 판과 켠 판)
-- 대량 상황(탄환, 이펙트, 적이 많은 장면)의 Android 실기기 프레임 시간과 GC 할당 측정
-- 전투 규칙 테스트. Core 의 일부 규칙은 dotnet 테스트([Tests](Tests))가 있고, 나머지는 게임 기능을 정리한 뒤 추가합니다
+이전 프로젝트에서 만든 패키지와 코드를 가져와 썼습니다.
+
+| 가져온 것 | 출처 | 이 프로젝트에서 쓴 곳 |
+|---|---|---|
+| `com.frenil.uisystem` v0.3.1 | [unity-ui-system](https://github.com/Frenil-client/unity-ui-system) | UI 스택. 전투, 사격장 화면(UIScreen)과 스킬 세트 선택, 결과 팝업(UIPopup), 공유 Dim, 정렬과 입력 차단. 프리팹 공급원 인터페이스에 Addressables 구현([AddressablesUIPrefabProvider](Assets/_Project/Scripts/Content/AddressablesUIPrefabProvider.cs))을 꽂아 팝업을 주소로 연다 |
+| `com.frenil.addressables-delivery` | [unity-lobby-flow](https://github.com/Frenil-client/unity-lobby-flow) | Addressables 프로필과 카탈로그 설정, 빌드 창과 빌드 검사, 리소스 핸들 묶음(`AssetHandleSet`)과 보유 수 기록(`ResourceCounters`), Jenkins 템플릿(`Jenkinsfile`, `ci/unity.ps1`, `ci/integrity.ps1`) |
+| Synthesis.Core | 이전 프로젝트 SYNTHESIS(DefenceGame) | 고정소수점(`Fixed`), 결정적 난수, 틱 누적, CSV 와 문자열 도구는 그대로 복사했다. 스킬 계획과 검증은 방식만 가져와 이 전투의 트리거와 효과에 맞게 새로 썼다. 비교 내용은 [SPEC.md](SPEC.md) 5절 |
 
 ## 리소스 출처와 작업 범위
 
